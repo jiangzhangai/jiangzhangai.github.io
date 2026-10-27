@@ -32,8 +32,8 @@ function Header({ dark, onToggle, onLang }) {
 function Hero({ typedText }) {
   const t = useT();
   const role = t(PROFILE.roleEn, PROFILE.roleZh);
-  const separator = t(" ", "");
-  const words = t(role.split(" "), [role]);
+  const head = role.slice(0, -1);
+  const tail = role.slice(-1);
   return (
     <section className="hero" id="top">
       <div className="hero-map" aria-hidden="true">
@@ -45,9 +45,9 @@ function Hero({ typedText }) {
         <h1 className="sr-only">{PROFILE.nameEn} · {PROFILE.nameZh}</h1>
         <div className="hero-signature">
           <p className="role">
-            {words.slice(0, -1).join(" ")}{separator}
+            {head}
             <span className="hero-last-word">
-              {words.slice(-1)}
+              {tail}
               <span className="hero-name-zh" role="img" aria-label={t(`${PROFILE.nameZh} seal`, `${PROFILE.nameZh}篆书印章`)} />
             </span>
           </p>
