@@ -122,7 +122,7 @@ const PROJECTS = [
 const WRITING = [];
 
 const LINKS = [
-  { label: "GitHub", labelZh: "GitHub", value: "@jiangzhang", url: "https://github.com/jiangzhang" },
+  { label: "GitHub", labelZh: "GitHub", value: "@jiangzhangai", url: "https://github.com/jiangzhangai" },
   { label: "Email", labelZh: "邮箱", value: "john@jiangzhang.ca", url: "mailto:john@jiangzhang.ca" },
   { label: "Domain", labelZh: "网址", value: "jiangzhang.ca", url: "https://jiangzhang.ca" },
 ];
