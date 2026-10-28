@@ -2,7 +2,7 @@ const PROFILE = {
   nameEn: "Jiang Zhang",
   nameZh: "張江",
   motto: "I am not what I was.",
-  roleEn: "Retired Educator · AI Practitioner & Builder",
+  roleEn: "AI Practitioner & Builder",
   roleZh: "人工智能实践者与开发者",
   introEn:
     "I am a retired educator based in Edmonton, Canada, with an academic background in mathematics and computer networking. My career spans mathematics and computing education in China and Canada, business development consulting, investment, and technology project coordination. I now continue to explore programming and artificial intelligence, turning decades of teaching and practical experience into useful systems.",
@@ -14,6 +14,7 @@ const TYPED_LINES = [
   "Mathematics · Computing · Artificial Intelligence",
   "Teach · Build · Keep learning",
   "I am not what I was.",
+  "The Laozi Decision Support System",
 ];
 
 const TYPED_LINES_ZH = [
