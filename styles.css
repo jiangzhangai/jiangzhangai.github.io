@@ -3,6 +3,8 @@
   --paper-deep: #e7d2ae;
   --ink: #27231e;
   --muted: #7d756a;
+  --text-soft: #574f45;
+  --strip: clamp(42px, 6vw, 84px);
   --line: rgba(55, 49, 42, 0.15);
   --grid: rgba(55, 49, 42, 0.08);
   --accent: #b6532a;
@@ -16,6 +18,7 @@
   --paper-deep: #25211c;
   --ink: #eee7dc;
   --muted: #a69e92;
+  --text-soft: #a69e92;
   --line: rgba(238, 231, 220, 0.16);
   --grid: rgba(238, 231, 220, 0.07);
   --accent: #e17a4d;
@@ -31,12 +34,13 @@ button { color: inherit; }
 ::selection { background: var(--accent); color: #fff; }
 
 .site-header {
-  position: fixed; inset: 0 0 auto; z-index: 50; height: 78px; padding: 0 clamp(24px, 6vw, 90px);
+  position: fixed; inset: 0 0 auto; z-index: 50; height: 78px; padding: 0;
   display: flex; justify-content: flex-start; align-items: center;
   background: color-mix(in srgb, var(--paper) 88%, transparent);
   backdrop-filter: blur(14px);
 }
-.header-tools { display: flex; align-items: center; gap: 16px; }
+.site-header::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--strip); background: var(--paper-deep); border-right: 1px solid var(--line); }
+.header-tools { position: relative; width: var(--strip); display: flex; justify-content: center; align-items: center; gap: 8px; }
 .lang-button { width: 17px; height: 17px; display: grid; place-items: center; padding: 0; border: 1px solid var(--ink); border-radius: 50%; background: var(--ink); color: var(--paper); box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--line); font: 600 9px/1 "Noto Serif SC", serif; cursor: pointer; transition: box-shadow .25s, transform .25s; }
 :root[lang="en"] .lang-button { font: 600 10px/1 "Source Serif 4", serif; }
 .lang-button:hover { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--accent); transform: scale(1.05); }
@@ -57,7 +61,7 @@ button { color: inherit; }
   background-size: 48px 48px;
 }
 main { position: relative; }
-main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; width: clamp(42px, 6vw, 84px); background: var(--paper-deep); border-right: 1px solid var(--line); pointer-events: none; }
+main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; width: var(--strip); background: var(--paper-deep); border-right: 1px solid var(--line); pointer-events: none; }
 .hero-map { position: absolute; inset: 0; opacity: .38; pointer-events: none; }
 .contour { position: absolute; display: block; border: clamp(4px, .6vw, 9px) solid var(--line); border-radius: 50%; }
 .contour-a { width: 110vw; height: 54vw; left: -25vw; top: 18%; transform: rotate(-13deg); }
@@ -71,7 +75,7 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 .hero-divider { position: absolute; left: 50%; bottom: -26px; width: clamp(90px, 13vw, 180px); height: 2px; border-radius: 1px; transform: translateX(-50%); background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: breathe 4s ease-in-out infinite; }
 @keyframes breathe { 0%, 100% { opacity: .15; } 50% { opacity: 1; } }
 .role { margin: 0; font: 400 clamp(15px, 1.8vw, 24px)/1.3 "Pinyon Script", cursive; text-shadow: .3px 0 currentColor, -.15px 0 currentColor; }
-.typed { min-height: 30px; margin: 52px auto 0; color: var(--muted); font: 400 clamp(16px, 1.6vw, 22px)/1.3 "Pinyon Script", cursive; text-shadow: .25px 0 currentColor; }
+.typed { min-height: 30px; margin: 52px auto 0; color: var(--text-soft); font: 400 clamp(16px, 1.6vw, 22px)/1.3 "Pinyon Script", cursive; text-shadow: .25px 0 currentColor; }
 .typed p { margin: 0; }
 .typed-rest { color: transparent; text-shadow: none; }
 :root[lang="zh-CN"] .typed { width: min(30em, 100%); text-align: justify; text-align-last: left; }
@@ -80,14 +84,15 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 :root[lang="zh-CN"] .typed { font: 400 clamp(12px, 1.2vw, 16px)/1.8 "Noto Serif SC", serif; letter-spacing: .08em; text-shadow: none; }
 
 @media (max-width: 620px) {
-  .site-header { height: 66px; padding-inline: 18px; }
+  :root { --strip: 38px; }
+  .site-header { height: 66px; }
+  .header-tools { flex-direction: column; gap: 10px; }
   .theme-button, .lang-button { width: 14px; height: 14px; }
   .lang-button { font-size: 7.5px; }
   :root[lang="en"] .lang-button { font-size: 8.5px; }
   .taiji::before, .taiji::after { border-width: 2px; }
   .hero { padding-inline: 56px 20px; }
   .hero-signature { top: 20px; }
-  main::before { width: 38px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
