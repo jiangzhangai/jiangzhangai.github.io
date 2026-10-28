@@ -32,7 +32,7 @@ button { color: inherit; }
 
 .site-header {
   position: fixed; inset: 0 0 auto; z-index: 50; height: 78px; padding: 0 clamp(24px, 6vw, 90px);
-  display: flex; justify-content: flex-end; align-items: center;
+  display: flex; justify-content: flex-start; align-items: center;
   background: color-mix(in srgb, var(--paper) 88%, transparent);
   backdrop-filter: blur(14px);
 }
