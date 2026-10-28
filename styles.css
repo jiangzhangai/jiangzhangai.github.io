@@ -132,7 +132,7 @@ footer > span { color: var(--muted); font-size: 8px; }
 .reveal.is-visible { opacity: 1; transform: none; }
 
 h2, .skill-group h3, .experience-row h3, .project-copy h3, .writing-row h3 { font-family: "Pinyon Script", cursive; font-weight: 400; letter-spacing: .005em; text-shadow: .3px 0 currentColor, -.15px 0 currentColor; }
-:root[lang="zh-CN"] .role { font: 500 clamp(15px, 1.7vw, 22px)/1.5 "Noto Serif SC", serif; letter-spacing: .08em; text-shadow: none; }
+:root[lang="zh-CN"] .role { font: 500 clamp(13px, 1.45vw, 19px)/1.5 "Noto Serif SC", serif; letter-spacing: .08em; text-shadow: none; }
 :root[lang="zh-CN"] h2 { font: 500 clamp(16px, 1.8vw, 24px)/1.4 "Noto Serif SC", serif; letter-spacing: .12em; text-shadow: none; }
 :root[lang="zh-CN"] :is(.skill-group, .experience-row, .project-copy, .writing-row) h3 { font: 500 clamp(14px, 1.45vw, 19px)/1.5 "Noto Serif SC", serif; letter-spacing: .06em; text-shadow: none; }
 :root[lang="zh-CN"] .about-grid .lead { font: 300 13px/2.1 "Noto Serif SC", serif; }

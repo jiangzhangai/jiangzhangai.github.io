@@ -3,7 +3,7 @@ const PROFILE = {
   nameZh: "張江",
   motto: "I am not what I was.",
   roleEn: "Retired Educator · AI Practitioner & Builder",
-  roleZh: "退休教师\u00a0· 人工智能\u200b实践者与开发者",
+  roleZh: "人工智能实践者与开发者",
   introEn:
     "I am a retired educator based in Edmonton, Canada, with an academic background in mathematics and computer networking. My career spans mathematics and computing education in China and Canada, business development consulting, investment, and technology project coordination. I now continue to explore programming and artificial intelligence, turning decades of teaching and practical experience into useful systems.",
   introZh:
