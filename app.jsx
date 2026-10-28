@@ -14,7 +14,8 @@ function App() {
   }, [lang]);
 
   React.useEffect(() => {
-    const current = TYPED_LINES.join(" · ");
+    const current = (lang === "zh" ? TYPED_LINES_ZH : TYPED_LINES).join(" · ");
+    const step = lang === "zh" ? 200 : 120;
     let char = 0;
     let timer;
     const tick = () => {
@@ -26,11 +27,11 @@ function App() {
       }
       char += 1;
       setTypedText(current.slice(0, char));
-      timer = setTimeout(tick, char === current.length ? 3600 : 120);
+      timer = setTimeout(tick, char === current.length ? 3600 : step);
     };
     tick();
     return () => clearTimeout(timer);
-  }, []);
+  }, [lang]);
 
   React.useEffect(() => {
     const observer = new IntersectionObserver((entries) => {

@@ -52,7 +52,7 @@ function Hero({ typedText }) {
           </p>
           <span className="hero-divider" aria-hidden="true" />
         </div>
-        <p className="typed">{typedText}</p>
+        <p className="typed">{typedText.split(/(?<=·) /).map((chunk, i) => <React.Fragment key={i}>{i > 0 && " "}<span className="hero-word">{chunk}</span></React.Fragment>)}</p>
       </div>
     </section>
   );

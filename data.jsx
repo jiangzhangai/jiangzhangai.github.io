@@ -16,6 +16,13 @@ const TYPED_LINES = [
   "I am not what I was.",
 ];
 
+const TYPED_LINES_ZH = [
+  "数学 · 计算机 · 人工智能",
+  "教学 · 实践 · 终身学习",
+  "今日之我，已非昨日之我",
+  "《老子》决策支持系统",
+];
+
 const SKILL_GROUPS = [
   {
     titleEn: "Mathematics",
