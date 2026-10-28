@@ -21,6 +21,7 @@ function App() {
     let timer;
     const tick = () => {
       if (char === current.length) {
+        if (lang === "zh") return; // A passage stays on the page once written.
         char = 0;
         setTypedText("");
         timer = setTimeout(tick, 600);
