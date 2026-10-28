@@ -32,8 +32,9 @@ function Header({ dark, onToggle, onLang }) {
 function Hero({ typedText }) {
   const t = useT();
   const role = t(PROFILE.roleEn, PROFILE.roleZh);
-  const head = role.slice(0, -1);
-  const tail = role.slice(-1);
+  // Line breaks only at spaces or zero-width spaces; each word stays whole.
+  const parts = role.split(/([ ​])/);
+  const seal = <span className="hero-name-zh" role="img" aria-label={t(`${PROFILE.nameZh} seal`, `${PROFILE.nameZh}篆书印章`)} />;
   return (
     <section className="hero" id="top">
       <div className="hero-map" aria-hidden="true">
@@ -45,11 +46,9 @@ function Hero({ typedText }) {
         <h1 className="sr-only">{PROFILE.nameEn} · {PROFILE.nameZh}</h1>
         <div className="hero-signature">
           <p className="role">
-            {head}
-            <span className="hero-last-word">
-              {tail}
-              <span className="hero-name-zh" role="img" aria-label={t(`${PROFILE.nameZh} seal`, `${PROFILE.nameZh}篆书印章`)} />
-            </span>
+            {parts.map((part, i) => (i % 2
+              ? (part === " " ? " " : <wbr key={i} />)
+              : <span className="hero-word" key={i}>{part}{i === parts.length - 1 && seal}</span>))}
           </p>
           <span className="hero-divider" aria-hidden="true" />
         </div>

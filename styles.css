@@ -73,7 +73,7 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 .contour-c { width: 55vw; height: 45vw; left: 16vw; bottom: -31vw; }
 .hero-copy { position: relative; z-index: 2; min-width: 0; max-width: 100%; }
 .hero-signature { position: relative; display: inline-block; }
-.hero-last-word { white-space: nowrap; }
+.hero-word { white-space: nowrap; }
 .hero .hero-name-zh { display: inline-block; vertical-align: -.04em; margin-left: .3em; width: .6em; height: .6em; background: currentColor; -webkit-mask: url("assets/name-zh-seal-shuowen.png") center / contain no-repeat; mask: url("assets/name-zh-seal-shuowen.png") center / contain no-repeat; }
 .hero-divider { position: absolute; left: 50%; bottom: -26px; width: clamp(90px, 13vw, 180px); height: 2px; border-radius: 1px; transform: translateX(-50%); background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: breathe 4s ease-in-out infinite; }
 @keyframes breathe { 0%, 100% { opacity: .15; } 50% { opacity: 1; } }
