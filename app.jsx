@@ -35,25 +35,11 @@ function App() {
     return () => clearTimeout(timer);
   }, [lang]);
 
-  React.useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add("is-visible"));
-    }, { threshold: 0.12 });
-    document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <LangContext.Provider value={lang}>
       <Header dark={dark} onToggle={() => setDark((value) => !value)} onLang={() => setLang((value) => (value === "zh" ? "en" : "zh"))} />
       <main>
         <Hero typedText={typedText} />
-        <About />
-        <Skills />
-        <Experience />
-        <Projects />
-        <Writing />
-        <Contact />
       </main>
     </LangContext.Provider>
   );
