@@ -79,6 +79,7 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 .typed p { margin: 0; }
 .typed-rest { color: transparent; text-shadow: none; }
 :root[lang="zh-CN"] .typed { width: min(30em, 100%); text-align: justify; text-align-last: left; }
+:root[lang="zh-CN"] .typed p { text-indent: 2em; }
 .typed-passage { margin-top: 1em !important; }
 :root[lang="zh-CN"] .role { font: 500 clamp(13px, 1.45vw, 19px)/1.5 "Noto Serif SC", serif; letter-spacing: .08em; text-shadow: none; }
 :root[lang="zh-CN"] .typed { font: 400 clamp(12px, 1.2vw, 16px)/1.8 "Noto Serif SC", serif; letter-spacing: .08em; text-shadow: none; }
