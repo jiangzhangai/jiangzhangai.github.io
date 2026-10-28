@@ -9,9 +9,6 @@ function Header({ dark, onToggle, onLang }) {
   const t = useT();
   return (
     <header className="site-header">
-      <a className="brand" href="#top" aria-label={t("Back to top", "返回首页")}>
-        <img className="brand-photo" src="assets/avatar.jpg" alt={PROFILE.nameEn} />
-      </a>
       <div className="header-tools">
         <button className="lang-button" onClick={onLang} aria-label={t("切换到中文", "Switch to English")}>
           {t("A", "中")}
@@ -24,14 +21,22 @@ function Header({ dark, onToggle, onLang }) {
   );
 }
 
-function Hero({ typedText }) {
+function Hero({ typedText, fullText }) {
   const t = useT();
   const role = t(PROFILE.roleEn, PROFILE.roleZh);
   // Line breaks only at spaces or zero-width spaces; each word stays whole.
   const parts = role.split(/([ ​])/);
   const seal = <span className="hero-name-zh" role="img" aria-label={t(`${PROFILE.nameZh} seal`, `${PROFILE.nameZh}篆书印章`)} />;
-  // The first line keeps its "·" phrases whole; later lines are a passage that grows the hero.
+  // A single line is laid out in full and revealed left to right, keeping its "·" phrases whole.
+  // A multi-line passage is written out as it is typed and grows the hero.
+  const isLine = !fullText.includes("\n");
   const [lines, ...passage] = typedText.split("\n");
+  let offset = 0;
+  const lineChunks = fullText.split(/(?<=·) /).map((chunk, i) => {
+    const shown = Math.max(0, Math.min(chunk.length, typedText.length - offset));
+    offset += chunk.length + 1;
+    return <React.Fragment key={i}>{i > 0 && " "}<span className="hero-word">{chunk.slice(0, shown)}<span className="typed-rest">{chunk.slice(shown)}</span></span></React.Fragment>;
+  });
   const typedRef = React.useRef(null);
   React.useEffect(() => {
     // Follow the typing downward, unless the reader has scrolled away from it.
@@ -57,7 +62,7 @@ function Hero({ typedText }) {
           <span className="hero-divider" aria-hidden="true" />
         </div>
         <div className="typed" ref={typedRef}>
-          <p>{lines.split(/(?<=·) /).map((chunk, i) => <React.Fragment key={i}>{i > 0 && " "}<span className="hero-word">{chunk}</span></React.Fragment>)}</p>
+          {isLine ? <p>{lineChunks}</p> : <p>{lines}</p>}
           {passage.map((text, i) => <p className="typed-passage" key={i}>{text}</p>)}
         </div>
       </div>

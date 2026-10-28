@@ -2,7 +2,7 @@ const PROFILE = {
   nameEn: "Jiang Zhang",
   nameZh: "張江",
   roleEn: "Artificial Intelligence Practitioner & Builder",
-  roleZh: "人工智能实践者与开发者",
+  roleZh: "《老子》决策支持系统",
 };
 
 const TYPED_LINES = [
@@ -10,13 +10,6 @@ const TYPED_LINES = [
   "Teach · Build · Keep learning",
   "I am not what I was.",
   "The Laozi Decision Support System",
-];
-
-const TYPED_LINES_ZH = [
-  "数学 · 计算机 · 人工智能",
-  "教学 · 实践 · 终身学习",
-  "今日之我，已非昨日之我",
-  "《老子》决策支持系统",
 ];
 
 const TYPED_PASSAGE_ZH = [

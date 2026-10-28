@@ -13,9 +13,10 @@ function App() {
     localStorage.setItem("lang", lang);
   }, [lang]);
 
+  const fullText = lang === "zh" ? TYPED_PASSAGE_ZH.join("\n") : TYPED_LINES.join(" · ");
+
   React.useEffect(() => {
-    const lines = (lang === "zh" ? TYPED_LINES_ZH : TYPED_LINES).join(" · ");
-    const current = lang === "zh" ? [lines, ...TYPED_PASSAGE_ZH].join("\n") : lines;
+    const current = fullText;
     const step = lang === "zh" ? 160 : 120;
     let char = 0;
     let timer;
@@ -39,7 +40,7 @@ function App() {
     <LangContext.Provider value={lang}>
       <Header dark={dark} onToggle={() => setDark((value) => !value)} onLang={() => setLang((value) => (value === "zh" ? "en" : "zh"))} />
       <main>
-        <Hero typedText={typedText} />
+        <Hero typedText={typedText} fullText={fullText} />
       </main>
     </LangContext.Provider>
   );
