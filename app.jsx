@@ -14,8 +14,9 @@ function App() {
   }, [lang]);
 
   React.useEffect(() => {
-    const current = (lang === "zh" ? TYPED_LINES_ZH : TYPED_LINES).join(" · ");
-    const step = lang === "zh" ? 200 : 120;
+    const lines = (lang === "zh" ? TYPED_LINES_ZH : TYPED_LINES).join(" · ");
+    const current = lang === "zh" ? [lines, ...TYPED_PASSAGE_ZH].join("\n") : lines;
+    const step = lang === "zh" ? 160 : 120;
     let char = 0;
     let timer;
     const tick = () => {
@@ -27,7 +28,7 @@ function App() {
       }
       char += 1;
       setTypedText(current.slice(0, char));
-      timer = setTimeout(tick, char === current.length ? 3600 : step);
+      timer = setTimeout(tick, char === current.length ? 8000 : step);
     };
     tick();
     return () => clearTimeout(timer);

@@ -35,6 +35,15 @@ function Hero({ typedText }) {
   // Line breaks only at spaces or zero-width spaces; each word stays whole.
   const parts = role.split(/([ ​])/);
   const seal = <span className="hero-name-zh" role="img" aria-label={t(`${PROFILE.nameZh} seal`, `${PROFILE.nameZh}篆书印章`)} />;
+  // The first line keeps its "·" phrases whole; later lines are a passage that rolls upward.
+  const [lines, ...passage] = typedText.split("\n");
+  const typedRef = React.useRef(null);
+  const [rolling, setRolling] = React.useState(false);
+  React.useEffect(() => {
+    const el = typedRef.current;
+    el.scrollTop = el.scrollHeight;
+    setRolling(el.scrollHeight > el.clientHeight + 1);
+  }, [typedText]);
   return (
     <section className="hero" id="top">
       <div className="hero-map" aria-hidden="true">
@@ -52,7 +61,10 @@ function Hero({ typedText }) {
           </p>
           <span className="hero-divider" aria-hidden="true" />
         </div>
-        <p className="typed">{typedText.split(/(?<=·) /).map((chunk, i) => <React.Fragment key={i}>{i > 0 && " "}<span className="hero-word">{chunk}</span></React.Fragment>)}</p>
+        <div className={`typed ${passage.length ? "has-passage" : ""} ${rolling ? "is-rolling" : ""}`} ref={typedRef}>
+          <p>{lines.split(/(?<=·) /).map((chunk, i) => <React.Fragment key={i}>{i > 0 && " "}<span className="hero-word">{chunk}</span></React.Fragment>)}</p>
+          {passage.map((text, i) => <p className="typed-passage" key={i}>{text}</p>)}
+        </div>
       </div>
     </section>
   );
