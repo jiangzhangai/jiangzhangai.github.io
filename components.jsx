@@ -21,12 +21,65 @@ function Header({ dark, onToggle, onLang }) {
   );
 }
 
-function Hero({ typedText, fullText }) {
+// The spine is a bookshelf: one cell per project, read from projects.json.
+function Bookshelf() {
+  const t = useT();
+  const [shelf, setShelf] = React.useState(null);
+  const [open, setOpen] = React.useState(null);
+  const ref = React.useRef(null);
+
+  React.useEffect(() => {
+    fetch("projects.json").then((response) => response.json()).then(setShelf).catch(() => setShelf(null));
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const close = (event) => { if (event.type === "keydown" ? event.key === "Escape" : !ref.current.contains(event.target)) setOpen(null); };
+    document.addEventListener("click", close);
+    document.addEventListener("keydown", close);
+    return () => { document.removeEventListener("click", close); document.removeEventListener("keydown", close); };
+  }, [open]);
+
+  if (!shelf) return null;
+
+  // Book pages live on this site and open in place; products are other sites and open in a new tab.
+  const entry = (item) => (
+    <div className="shelf-entry" key={item.zh}>
+      {item.status === "live"
+        ? <a href={item.url} {...(item.url.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}><b>{t(item.en, item.zh)}</b></a>
+        : <><b>{t(item.en, item.zh)}</b><span>{t("In preparation", "筹备中")}</span></>}
+    </div>
+  );
+
+  const cell = (item) => (
+    <li key={item.char}>
+      <button className={`shelf-cell ${item.char.length > 1 ? "is-latin" : ""} ${open && open.item === item ? "is-open" : ""}`}
+        aria-label={t(item.en, item.zh)}
+        onClick={(event) => setOpen(open && open.item === item ? null : { item, top: event.currentTarget.getBoundingClientRect().top })}>
+        {item.char}
+      </button>
+    </li>
+  );
+
+  return (
+    <nav className="bookshelf" ref={ref} aria-label={t("Projects", "项目书架")}>
+      <ul>{shelf.thought.map(cell)}</ul>
+      <ul className="shelf-commerce">{shelf.commerce.map(cell)}</ul>
+      {open && (
+        <div className="shelf-card" style={{ top: open.top }}>
+          {open.item.children ? <><i>{t(open.item.en, open.item.zh)}</i>{open.item.children.map(entry)}</> : entry(open.item)}
+        </div>
+      )}
+    </nav>
+  );
+}
+
+function Hero({ typedText, fullText, fading }) {
   const t = useT();
   const role = t(PROFILE.roleEn, PROFILE.roleZh);
-  // Line breaks only at spaces or zero-width spaces; each word stays whole.
-  const parts = role.split(/([ ​])/);
-  const seal = <span className="hero-name-zh" role="img" aria-label={t(`${PROFILE.nameZh} seal`, `${PROFILE.nameZh}篆书印章`)} />;
+  // Line breaks only after a "·"; each phrase stays whole.
+  const parts = role.split(/(?<=·) /);
+  const seal = <span className="hero-name-zh" role="img" aria-label={t("Family seal", "家族印章")} />;
   // A single line is laid out in full and revealed left to right, keeping its "·" phrases whole.
   // A multi-line passage is written out as it is typed and grows the hero.
   const isLine = !fullText.includes("\n");
@@ -52,16 +105,16 @@ function Hero({ typedText, fullText }) {
         <i className="contour contour-c" />
       </div>
       <div className="hero-copy">
-        <h1 className="sr-only">{PROFILE.nameEn} · {PROFILE.nameZh}</h1>
+        <h1 className="sr-only">{role}</h1>
         <div className="hero-signature">
           <p className="role">
-            {parts.map((part, i) => (i % 2
-              ? (part === " " ? " " : <wbr key={i} />)
-              : <span className="hero-word" key={i}>{part}{i === parts.length - 1 && seal}</span>))}
+            {parts.map((part, i) => (
+              <React.Fragment key={i}>{i > 0 && " "}<span className="hero-word">{part}{i === parts.length - 1 && seal}</span></React.Fragment>
+            ))}
           </p>
           <span className="hero-divider" aria-hidden="true" />
         </div>
-        <div className="typed" ref={typedRef}>
+        <div className={`typed ${fading ? "is-fading" : ""}`} ref={typedRef}>
           {isLine ? <p>{lineChunks}</p> : <p>{lines}</p>}
           {passage.map((text, i) => <p className="typed-passage" key={i}>{text}</p>)}
         </div>
