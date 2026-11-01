@@ -50,6 +50,9 @@ button { color: inherit; }
 .header-tools { position: relative; width: var(--strip); display: flex; justify-content: center; align-items: center; gap: 8px; }
 .lang-button { width: 17px; height: 17px; display: grid; place-items: center; padding: 0; border: 1px solid var(--muted); border-radius: 50%; background: transparent; color: var(--ink); box-shadow: 0 0 0 1px var(--paper-deep), 0 0 0 2px var(--muted); font: 600 9px/1 "Noto Serif SC", serif; cursor: pointer; transition: color .25s, border-color .25s, box-shadow .25s, transform .25s; }
 :root[lang="en"] .lang-button { font: 600 10px/1 "Source Serif 4", serif; }
+/* The character in a small ring. app.jsx sets the scale; place-content keeps a character still wider than the ring on its centre. */
+.ring-char { display: block; white-space: nowrap; transform: scale(var(--ring-scale, 1)); }
+.lang-button, .shelf-cell { place-content: center; }
 .lang-button:hover { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 1px var(--paper-deep), 0 0 0 2px var(--accent); transform: scale(1.05); }
 .lang-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .theme-button { width: 17px; height: 17px; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; box-shadow: 0 0 0 1px var(--paper-deep), 0 0 0 2px var(--muted); padding: 0; cursor: pointer; transition: box-shadow .25s, transform .25s; }
@@ -113,7 +116,6 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 :root[lang="zh-CN"] .typed { width: min(30em, 100%); text-align: justify; text-align-last: left; }
 @media (min-width: 621px) { :root[lang="zh-CN"] .typed { width: min(45em, 100%); } }
 .typed-passage { margin-top: 1em !important; }
-:root[lang="zh-CN"] .role { font: 500 clamp(13px, 1.45vw, 19px)/1.5 "Noto Serif SC", serif; letter-spacing: .08em; text-shadow: none; }
 :root[lang="zh-CN"] .typed { font: 400 clamp(12px, 1.2vw, 16px)/1.8 "Noto Serif SC", serif; letter-spacing: .08em; text-shadow: none; }
 
 @media (max-width: 620px) {
@@ -139,14 +141,18 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 :root[lang="zh-CN"] .site-header { inset: 0 0 auto auto; width: var(--strip); background: none; backdrop-filter: none; }
 :root[lang="zh-CN"] .site-header::before, :root[lang="zh-CN"] main::before { inset: 0 0 0 auto; border-right: 0; border-left: 1px solid var(--line); }
 :root[lang="zh-CN"] .bookshelf { left: auto; right: 0; }
-:root[lang="zh-CN"] .hero { height: 100svh; min-height: 0; display: block; padding: 0; text-align: left; }
+:root[lang="zh-CN"] .hero { height: 100svh; min-height: 0; display: block; padding: 0; text-align: left; touch-action: manipulation; }
 :root[lang="zh-CN"] .hero-copy { position: absolute; inset: 0 var(--strip) 0 0; width: auto; display: flex; flex-direction: row-reverse; gap: max(12px, clamp(28px, 4vw, 56px) - 2 * clamp(13px, 1.1vw, 15px)); padding: clamp(48px, 10svh, 96px) max(8px, clamp(20px, 3vw, 44px) - 2 * clamp(13px, 1.1vw, 15px)) clamp(40px, 8svh, 72px) clamp(16px, 4vw, 64px); }
 /* A phone has no room for a full slip's width beside the spine: the title and the slips go as far right as they can without touching. */
 @media (max-width: 620px) { :root[lang="zh-CN"] .hero-copy { gap: 8px; padding-right: 6px; padding-left: 6px; } }
-:root[lang="zh-CN"] .hero-signature { position: relative; top: 0; flex: none; display: flex; flex-direction: column; align-items: center; gap: 14px; }
-:root[lang="zh-CN"] .role { height: max-content; writing-mode: vertical-rl; }
-:root[lang="zh-CN"] .hero .hero-name-zh { margin: .6em 0 0; vertical-align: middle; }
-:root[lang="zh-CN"] .hero-divider { position: static; width: 2px; height: clamp(90px, 22svh, 180px); transform: none; background: linear-gradient(180deg, transparent, var(--accent), transparent); }
+/* No title on this side, so the slips take its room. */
+:root[lang="zh-CN"] .hero-signature { display: none; }
+.shelf-seal { display: block; width: 17px; height: 17px; margin: 12px auto 0; background: var(--ink); -webkit-mask: url("assets/name-zh-seal-shuowen.png") center / contain no-repeat; mask: url("assets/name-zh-seal-shuowen.png") center / contain no-repeat; }
+@media (max-width: 620px) { .shelf-seal { width: 14px; height: 14px; } }
+/* The line under the seal gives way on a short screen, so the shelf never has to scroll for it. */
+:root[lang="zh-CN"] .bookshelf { display: flex; flex-direction: column; }
+:root[lang="zh-CN"] .bookshelf ul, .shelf-seal { flex: none; }
+.shelf-line { flex: 0 1 clamp(90px, 22svh, 180px); min-height: 0; width: 2px; margin: 12px auto 0; background: linear-gradient(180deg, transparent, var(--accent), transparent); animation: breathe 4s ease-in-out infinite; }
 :root[lang="zh-CN"] .typed { flex: 1; min-width: 0; width: auto; margin: 0; overflow: auto hidden; scrollbar-width: none; writing-mode: vertical-rl; font-size: clamp(13px, 1.1vw, 15px); line-height: 2; }
 /* Bamboo slips: one slip per column, 2em wide like the line. They sit on the box that scrolls inside .typed, with the text,
    because phone browsers can't be trusted with background-attachment: local.
@@ -177,11 +183,13 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 .typed-heading { font-weight: 600; }
 /* A heading's type is already the seal images' size. */
 :root[lang="zh-CN"] .typed-heading .seal { font-size: 1em; }
+/* Ordinary type beside the seal: spaced to the images' step and set down so each character faces its image. components.jsx measures the values. */
+:root[lang="zh-CN"] .typed-scroll p.typed-gloss { letter-spacing: var(--gloss-gap); padding-top: var(--gloss-lead); white-space: nowrap; }
 /* A character fades in over about seven characters' typing time. */
 @keyframes ink { from { opacity: 0; } }
 .ink, .seal-glyph { animation: ink 1.4s ease-in-out; }
-/* Placed from the side of the column, not on the text baseline, which browsers put differently: half of the 2em line's spare em sits on the right. */
-.seal-glyph { display: inline-block; width: 1em; height: 1em; margin: 0 .5em .08em 0; vertical-align: top; fill: currentColor; }
+/* Placed from the side of the column, not on the text baseline, which browsers put differently: half of the line's spare width sits on the right. components.jsx measures the values. */
+.seal-glyph { display: inline-block; width: var(--seal-size); height: var(--seal-size); margin: 0 var(--seal-side) var(--seal-gap) 0; vertical-align: top; fill: currentColor; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

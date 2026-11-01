@@ -1,5 +1,7 @@
 const LangContext = React.createContext("en");
 const TYPE_STEP = 200; // Milliseconds per character of the Chinese passage.
+// Seal with ordinary type beside it goes at half that speed: each column brings two slips.
+const stepOf = (text) => (text.includes("\n") ? 2 * TYPE_STEP : TYPE_STEP);
 
 function useT() {
   const lang = React.useContext(LangContext);
@@ -12,7 +14,7 @@ function Header({ dark, onToggle, onLang }) {
     <header className="site-header">
       <div className="header-tools">
         <button className="lang-button" onClick={onLang} aria-label={t("切换到中文", "Switch to English")}>
-          {t("A", "中")}
+          <span className="ring-char">{t("A", "中")}</span>
         </button>
         <button className="theme-button" onClick={onToggle} aria-label={t("Toggle light and dark theme", "切换明暗主题")}>
           <span className={`taiji ${dark ? "is-dark" : ""}`} aria-hidden="true" />
@@ -25,6 +27,7 @@ function Header({ dark, onToggle, onLang }) {
 // The spine is a bookshelf: one cell per project, read from projects.json.
 function Bookshelf({ onPiece }) {
   const t = useT();
+  const lang = React.useContext(LangContext);
   const [shelf, setShelf] = React.useState(null);
   const [open, setOpen] = React.useState(null);
   const ref = React.useRef(null);
@@ -67,7 +70,7 @@ function Bookshelf({ onPiece }) {
         : <button className={`shelf-cell ${item.char.length > 1 ? "is-latin" : ""}`}
             aria-label={t(item.en, item.zh)}
             onClick={() => setOpen(item)}>
-            {item.char}
+            <span className="ring-char">{item.char}</span>
           </button>}
     </li>
   );
@@ -76,6 +79,7 @@ function Bookshelf({ onPiece }) {
     <nav className="bookshelf" ref={ref} aria-label={t("Projects", "项目书架")}>
       <ul>{shelf.thought.map(cell)}</ul>
       <ul className="shelf-commerce">{shelf.commerce.map(cell)}</ul>
+      {lang === "zh" && <><span className="shelf-seal" role="img" aria-label="家族印章" /><span className="shelf-line" aria-hidden="true" /></>}
     </nav>
   );
 }
@@ -86,8 +90,8 @@ const sealChar = (char, i) => (SEAL_GLYPHS[char]
   : char);
 const withSeal = (text) => text.split(/[]/).map((part, i) => (i % 2 ? <span className="seal" key={i}>{[...part].map(sealChar)}</span> : part));
 //  at the start of a line makes it a heading. An empty line is one blank slip.
-const paragraph = (text, key) => (
-  <p className={`${key ? "typed-passage" : ""} ${text[0] === "" ? "typed-heading" : ""}`} key={key}>
+const paragraph = (text, key, gloss) => (
+  <p className={`${gloss ? "typed-gloss " : ""}${key ? "typed-passage" : ""}${text[0] === "" ? "typed-heading" : ""}`} key={key}>
     {text ? withSeal(text.replace("", "")) : "　"}
   </p>
 );
@@ -106,9 +110,21 @@ const ink = (p) => {
 };
 
 // Only the line being typed changes: a piece can run to thousands of seal images, too many to redraw for each character.
-const Line = React.memo(({ text, n }) => ink(paragraph(text, n)));
+const Line = React.memo(({ text, n, gloss }) => ink(paragraph(text, n, gloss)));
 
-function Hero({ typedText, fullText, fading }) {
+// A line wholly in seal is cut into columns, each with the same characters in ordinary type on the next slip, so few would otherwise read it. Both write together.
+const withGloss = (line, size) => {
+  if (line[0] !== "") return [{ text: line }];
+  const chars = [...line.replace(/[]/g, "")];
+  const rows = [];
+  for (let i = 0; i < chars.length; i += size || chars.length) {
+    const column = chars.slice(i, i + (size || chars.length)).join("");
+    rows.push({ text: `${column}` }, { text: column, gloss: true });
+  }
+  return rows;
+};
+
+function Hero({ typedText, fullText, fading, held, onHold }) {
   const t = useT();
   const lang = React.useContext(LangContext);
   const role = t(PROFILE.roleEn, PROFILE.roleZh);
@@ -118,7 +134,8 @@ function Hero({ typedText, fullText, fading }) {
   // A single line is laid out in full and revealed left to right, keeping its "·" phrases whole.
   // A multi-line passage is written out as it is typed and grows the hero.
   const isLine = !fullText.includes("\n");
-  const [lines, ...passage] = typedText.split("\n");
+  const [perColumn, setPerColumn] = React.useState(0);
+  const rows = typedText.split("\n").flatMap((line) => withGloss(line, perColumn));
   let offset = 0;
   const lineChunks = fullText.split(/(?<=·) /).map((chunk, i) => {
     const shown = Math.max(0, Math.min(chunk.length, typedText.length - offset));
@@ -164,10 +181,15 @@ function Hero({ typedText, fullText, fading }) {
     scroll.style.setProperty("--slip", `${pitch.toFixed(2)}px`);
     const shift = scroll.getBoundingClientRect().right - centres[0] - pitch / 2;
     scroll.style.setProperty("--slip-x", `${(shift - Math.round(shift / pitch) * pitch).toFixed(2)}px`);
-    // A whole number of slips fits the window, so none is left cut through at the right edge when the columns come to rest.
+    // A whole number of slips fits the window, so none is left cut through at the right edge when the columns come to rest. What is left over goes evenly to both sides, whatever the screen.
     const box = typedRef.current;
-    const room = box.getBoundingClientRect().width + (parseFloat(box.style.marginLeft) || 0);
-    box.style.marginLeft = `${(room % pitch).toFixed(2)}px`;
+    const room = box.getBoundingClientRect().width + (parseFloat(box.style.marginLeft) || 0) + (parseFloat(box.style.marginRight) || 0);
+    const around = getComputedStyle(box.parentElement);
+    const left = parseFloat(around.paddingLeft);
+    const right = parseFloat(around.paddingRight);
+    const side = (room % pitch + left + right) / 2;
+    box.style.marginLeft = `${(side - left).toFixed(2)}px`;
+    box.style.marginRight = `${(side - right).toFixed(2)}px`;
   };
   // The slips move on at an even speed, left to the browser so that the typing can't disturb it: a transition on a transform, retimed at each new column.
   // Scrolling won't do: it goes only by whole pixels, and Safari resets it as the text lays out. The blank slip kept at the left (styles.css) leaves the newest column in view.
@@ -191,7 +213,7 @@ function Hero({ typedText, fullText, fading }) {
     const image = scroll.lastElementChild.querySelector(".seal-glyph");
     const letter = image ? image.getBoundingClientRect().height * 1.08 : parseFloat(text.fontSize) + (parseFloat(text.letterSpacing) || 0);
     const column = scroll.getBoundingClientRect().height - 2 * parseFloat(getComputedStyle(scroll).paddingTop);
-    const seconds = 1.05 * (column / letter) * (TYPE_STEP / 1000);
+    const seconds = 1.05 * (column / letter) * (stepOf(fullText) / 1000);
     scroll.style.transition = `transform ${seconds.toFixed(2)}s linear`;
     scroll.style.transform = `translateX(${-target}px)`;
   };
@@ -207,14 +229,56 @@ function Hero({ typedText, fullText, fading }) {
     scroll.style.transform = "";
     el.scrollLeft = -at;
   };
+  // People tap moving text as they would a video: one tap stops it to read, the next goes on. A tap that only closes the open menu does neither, and a finished passage has nothing to stop.
+  const onTap = () => {
+    if (lang !== "zh" || typedText === fullText || document.querySelector(".shelf-name")) return;
+    const scroll = typedRef.current.firstChild;
+    if (!held.current) {
+      onHold(true);
+      scroll.getAnimations().forEach((motion) => motion.pause());
+      return;
+    }
+    onHold(false);
+    if (scroll.style.transform) {
+      scroll.getAnimations().forEach((motion) => motion.play());
+      return;
+    }
+    // The reader moved the slips by hand while stopped: go back to the newest column, or going on would show nothing.
+    atNewest.current = true;
+    touched.current = 0;
+    follow();
+  };
   React.useEffect(() => {
     if (lang !== "zh") return;
-    const realign = () => alignSlips(true);
+    // WeChat enlarges the type by its reader's font setting, but sizes in em don't follow. So the seal images and both columns' steps are worked out from the type as it really is, which keeps them one to one and each column on one slip.
+    const measureColumn = () => {
+      const scroll = typedRef.current.firstChild;
+      const probe = scroll.appendChild(document.createElement("p"));
+      probe.className = "typed-gloss";
+      probe.style.cssText = "letter-spacing: 0; padding: 0";
+      probe.textContent = "一";
+      const range = document.createRange();
+      range.selectNodeContents(probe);
+      const type = range.getBoundingClientRect().height;
+      probe.remove();
+      const size = type * 1.35;
+      const step = size * 1.08;
+      const lineWidth = parseFloat(getComputedStyle(scroll).lineHeight);
+      scroll.style.setProperty("--seal-size", `${size.toFixed(2)}px`);
+      scroll.style.setProperty("--seal-side", `${((lineWidth - size) / 2).toFixed(2)}px`);
+      scroll.style.setProperty("--seal-gap", `${(step - size).toFixed(2)}px`);
+      scroll.style.setProperty("--gloss-gap", `${(step - type).toFixed(2)}px`);
+      scroll.style.setProperty("--gloss-lead", `${((size - type) / 2).toFixed(2)}px`);
+      setPerColumn(Math.floor((scroll.getBoundingClientRect().height - 2 * parseFloat(getComputedStyle(scroll).paddingTop)) / step));
+    };
+    measureColumn();
+    const realign = () => { measureColumn(); alignSlips(true); };
     addEventListener("resize", realign);
     if (document.fonts) document.fonts.ready.then(realign);
     return () => {
       removeEventListener("resize", realign);
       typedRef.current.style.marginLeft = "";
+      typedRef.current.style.marginRight = "";
       typedRef.current.firstChild.style.transition = "none";
       typedRef.current.firstChild.style.transform = "";
       followedWidth.current = 0;
@@ -260,7 +324,7 @@ function Hero({ typedText, fullText, fading }) {
     if (bottom > target && bottom < innerHeight + 80) window.scrollBy({ top: bottom - target, behavior: "smooth" });
   }, [typedText]);
   return (
-    <section className="hero" id="top" ref={heroRef}>
+    <section className="hero" id="top" ref={heroRef} onClick={onTap}>
       <div className="hero-map" aria-hidden="true">
         <i className="contour contour-a" />
         <i className="contour contour-b" />
@@ -278,8 +342,7 @@ function Hero({ typedText, fullText, fading }) {
         </div>
         <div className={`typed ${fading ? "is-fading" : ""}`} ref={typedRef}>
           <div className="typed-scroll">
-            {isLine ? <p>{lineChunks}</p> : <Line text={lines} n={0} />}
-            {passage.map((text, i) => <Line key={i + 1} text={text} n={i + 1} />)}
+            {isLine ? <p>{lineChunks}</p> : rows.map((row, i) => <Line key={i} text={row.text} n={i} gloss={row.gloss} />)}
           </div>
         </div>
       </div>

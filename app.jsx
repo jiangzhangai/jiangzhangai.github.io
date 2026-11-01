@@ -1,3 +1,13 @@
+// WeChat enlarges type by its reader's font setting, which would burst the small rings of the menu. Up to 112% it still fits well; beyond that the ring's character is drawn back to that size.
+{
+  const probe = document.body.appendChild(document.createElement("div"));
+  probe.style.fontSize = "100px";
+  probe.textContent = "一";
+  const enlarged = parseFloat(getComputedStyle(probe).fontSize) / 100;
+  probe.remove();
+  document.documentElement.style.setProperty("--ring-scale", Math.min(1, 1.12 / enlarged).toFixed(3));
+}
+
 function App() {
   // Dark by default; "theme-v2" so earlier saved choices don't override the new default.
   const [dark, setDark] = React.useState(() => (localStorage.getItem("theme-v2") || "dark") === "dark");
@@ -6,6 +16,17 @@ function App() {
   const [play, setPlay] = React.useState(0);
   const [fading, setFading] = React.useState(false);
   const [piece, setPiece] = React.useState(null);
+  // A tap holds the typing where it is; the next tap lets the waiting character go on.
+  const held = React.useRef(false);
+  const waiting = React.useRef(null);
+  const hold = (on) => {
+    held.current = on;
+    if (!on && waiting.current) {
+      const go = waiting.current;
+      waiting.current = null;
+      go();
+    }
+  };
 
   React.useEffect(() => {
     document.documentElement.dataset.theme = dark ? "dark" : "light";
@@ -22,7 +43,8 @@ function App() {
 
   React.useEffect(() => {
     document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
-    document.title = lang === "zh" ? PROFILE.roleZh : PROFILE.roleEn;
+    // A blank character, not an empty title: given none, a phone's title bar shows the address instead.
+    document.title = lang === "zh" ? "⠀" : PROFILE.roleEn;
     localStorage.setItem("lang", lang);
   }, [lang]);
 
@@ -31,7 +53,7 @@ function App() {
 
   React.useEffect(() => {
     const current = fullText;
-    const step = lang === "zh" ? TYPE_STEP : 120;
+    const step = lang === "zh" ? stepOf(current) : 120;
     let char = 0;
     let timer;
     // After the rest, clear the round and start the next one, but only once the reader has stopped scrolling for five minutes.
@@ -57,6 +79,10 @@ function App() {
       }, 1200);
     };
     const tick = () => {
+      if (held.current) {
+        waiting.current = tick;
+        return;
+      }
       if (char === current.length) {
         if (lang === "zh") {
           timer = setTimeout(next, 10 * 60 * 1000); // Ten minutes to read it again and think.
@@ -72,6 +98,8 @@ function App() {
       timer = setTimeout(tick, char === current.length ? 8000 : step);
     };
     // Clear first, so that a piece chosen midway starts on bare slips.
+    held.current = false;
+    waiting.current = null;
     setFading(false);
     setTypedText("");
     timer = setTimeout(tick, 300);
@@ -93,7 +121,7 @@ function App() {
       <Header dark={dark} onToggle={() => setDark((value) => !value)} onLang={() => setLang((value) => (value === "zh" ? "en" : "zh"))} />
       <Bookshelf onPiece={choosePiece} />
       <main>
-        <Hero typedText={typedText} fullText={fullText} fading={fading} />
+        <Hero typedText={typedText} fullText={fullText} fading={fading} held={held} onHold={hold} />
       </main>
     </LangContext.Provider>
   );
