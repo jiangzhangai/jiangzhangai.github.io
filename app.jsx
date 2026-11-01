@@ -5,6 +5,7 @@ function App() {
   const [typedText, setTypedText] = React.useState("");
   const [play, setPlay] = React.useState(0);
   const [fading, setFading] = React.useState(false);
+  const [piece, setPiece] = React.useState(null);
 
   React.useEffect(() => {
     document.documentElement.dataset.theme = dark ? "dark" : "light";
@@ -25,17 +26,19 @@ function App() {
     localStorage.setItem("lang", lang);
   }, [lang]);
 
-  const fullText = lang === "zh" ? PLAYLIST_ZH[play % PLAYLIST_ZH.length].join("\n") : TYPED_LINES.join(" · ");
+  // Chinese runs vertically, where curly quotes come out differently from browser to browser: use the vertical forms, which hold in all of them.
+  const fullText = lang === "zh" ? (piece ? PIECES_ZH[piece] : PLAYLIST_ZH[play % PLAYLIST_ZH.length]).join("\n").replace(/“/g, "﹃").replace(/”/g, "﹄") : TYPED_LINES.join(" · ");
 
   React.useEffect(() => {
     const current = fullText;
-    const step = lang === "zh" ? 160 : 120;
+    const step = lang === "zh" ? TYPE_STEP : 120;
     let char = 0;
     let timer;
     // After the rest, clear the round and start the next one, but only once the reader has stopped scrolling for five minutes.
     let lastScroll = 0;
     const onScroll = () => { lastScroll = Date.now(); };
-    addEventListener("scroll", onScroll, { passive: true });
+    // Capture, because the Chinese passage scrolls in its own box and scroll events don't bubble.
+    addEventListener("scroll", onScroll, { passive: true, capture: true });
     const idle = 5 * 60 * 1000;
     const next = () => {
       const still = Date.now() - lastScroll;
@@ -48,6 +51,8 @@ function App() {
         scrollTo({ top: 0 });
         setTypedText("");
         setFading(false);
+        // A chosen piece plays once; then the playlist goes on.
+        setPiece(null);
         setPlay((value) => value + 1);
       }, 1200);
     };
@@ -66,14 +71,27 @@ function App() {
       setTypedText(current.slice(0, char));
       timer = setTimeout(tick, char === current.length ? 8000 : step);
     };
-    tick();
-    return () => { clearTimeout(timer); removeEventListener("scroll", onScroll); };
-  }, [lang, play]);
+    // Clear first, so that a piece chosen midway starts on bare slips.
+    setFading(false);
+    setTypedText("");
+    timer = setTimeout(tick, 300);
+    return () => { clearTimeout(timer); removeEventListener("scroll", onScroll, { capture: true }); };
+  }, [lang, play, piece]);
+
+  // A piece in seal brings its own images, loaded only now because they are large.
+  const choosePiece = (name, glyphs) => {
+    if (lang !== "zh") return;
+    if (!glyphs) { setPiece(name); return; }
+    const script = document.createElement("script");
+    script.src = glyphs;
+    script.onload = () => setPiece(name);
+    document.head.appendChild(script);
+  };
 
   return (
     <LangContext.Provider value={lang}>
       <Header dark={dark} onToggle={() => setDark((value) => !value)} onLang={() => setLang((value) => (value === "zh" ? "en" : "zh"))} />
-      <Bookshelf />
+      <Bookshelf onPiece={choosePiece} />
       <main>
         <Hero typedText={typedText} fullText={fullText} fading={fading} />
       </main>

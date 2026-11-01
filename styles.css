@@ -9,6 +9,8 @@
   --grid: rgba(55, 49, 42, 0.08);
   --accent: #b6532a;
   --accent-soft: rgba(182, 83, 42, 0.12);
+  --slips: url("assets/slips-light.svg?v=20261031-170");
+  --slip-ink: #2e2414;
   --serif: "Source Serif 4", "Noto Serif SC", serif;
   --sans: "DM Sans", "Noto Sans SC", sans-serif;
 }
@@ -23,11 +25,14 @@
   --grid: rgba(238, 231, 220, 0.07);
   --accent: #e17a4d;
   --accent-soft: rgba(225, 122, 77, 0.14);
+  --slips: url("assets/slips-dark.svg?v=20261031-170");
+  --slip-ink: #1d170c;
 }
 
 * { box-sizing: border-box; }
 .sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
-html { scroll-behavior: smooth; background: var(--paper); }
+/* Phones must not enlarge the text on their own: the slips are measured from its size. */
+html { scroll-behavior: smooth; background: var(--paper); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); font-weight: 300; }
 /* Text can't be selected or long-pressed to copy (app.jsx also blocks copy and the context menu). */
 body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
@@ -43,12 +48,12 @@ button { color: inherit; }
 }
 .site-header::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--strip); background: var(--paper-deep); border-right: 1px solid var(--line); }
 .header-tools { position: relative; width: var(--strip); display: flex; justify-content: center; align-items: center; gap: 8px; }
-.lang-button { width: 17px; height: 17px; display: grid; place-items: center; padding: 0; border: 1px solid var(--ink); border-radius: 50%; background: var(--ink); color: var(--paper); box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--line); font: 600 9px/1 "Noto Serif SC", serif; cursor: pointer; transition: box-shadow .25s, transform .25s; }
+.lang-button { width: 17px; height: 17px; display: grid; place-items: center; padding: 0; border: 1px solid var(--muted); border-radius: 50%; background: transparent; color: var(--ink); box-shadow: 0 0 0 1px var(--paper-deep), 0 0 0 2px var(--muted); font: 600 9px/1 "Noto Serif SC", serif; cursor: pointer; transition: color .25s, border-color .25s, box-shadow .25s, transform .25s; }
 :root[lang="en"] .lang-button { font: 600 10px/1 "Source Serif 4", serif; }
-.lang-button:hover { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--accent); transform: scale(1.05); }
+.lang-button:hover { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 1px var(--paper-deep), 0 0 0 2px var(--accent); transform: scale(1.05); }
 .lang-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.theme-button { width: 17px; height: 17px; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--line); padding: 0; cursor: pointer; transition: border-color .25s, background .25s, transform .25s; }
-.theme-button:hover { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--accent); transform: scale(1.05); }
+.theme-button { width: 17px; height: 17px; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; box-shadow: 0 0 0 1px var(--paper-deep), 0 0 0 2px var(--muted); padding: 0; cursor: pointer; transition: box-shadow .25s, transform .25s; }
+.theme-button:hover { box-shadow: 0 0 0 1px var(--paper-deep), 0 0 0 2px var(--accent); transform: scale(1.05); }
 .theme-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .taiji { position: relative; display: block; box-sizing: border-box; width: 100%; height: 100%; overflow: hidden; border: 1px solid var(--ink); border-radius: 50%; background: linear-gradient(90deg, var(--ink) 50%, var(--paper) 50%); transition: transform .55s ease; }
 .taiji::before, .taiji::after { content: ""; position: absolute; left: 50%; width: 50%; height: 50%; border-radius: 50%; transform: translateX(-50%); box-sizing: border-box; }
@@ -58,16 +63,25 @@ button { color: inherit; }
 
 .bookshelf { position: fixed; top: 78px; bottom: 0; left: 0; z-index: 45; width: var(--strip); overflow-y: auto; scrollbar-width: none; padding: 14px 0 24px; }
 .bookshelf ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bookshelf ul:not(.shelf-commerce) { gap: 0; }
+.bookshelf ul:not(.shelf-commerce) li + li::before { content: "·"; display: block; color: var(--muted); font: 500 15px/12px "Noto Serif SC", serif; text-align: center; }
+/* The divider sits one menu step lower, as far from the last circle as from AI's circle. */
 .bookshelf .shelf-commerce { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); margin-inline: 22%; }
 .shelf-cell { width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 3px; background: transparent; color: var(--ink); font: 500 15px/1 "Noto Serif SC", serif; cursor: pointer; transition: color .2s, background .2s; }
-.shelf-cell.is-latin { font: 600 12px/1 "Source Serif 4", serif; letter-spacing: .02em; }
-.shelf-cell:hover, .shelf-cell.is-open { color: var(--accent); background: var(--paper); }
+.shelf-cell:hover { color: var(--accent); background: var(--paper); }
 .shelf-cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.shelf-card { position: fixed; left: calc(var(--strip) + 10px); z-index: 70; min-width: 9em; padding: 10px 14px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); box-shadow: 0 8px 24px rgba(0, 0, 0, .12); font: 400 13px/1.6 "Noto Serif SC", serif; text-align: left; }
-.shelf-card i { display: block; margin-bottom: 6px; color: var(--muted); font-style: normal; font-size: 11px; letter-spacing: .1em; }
-.shelf-entry + .shelf-entry { margin-top: 8px; }
+/* The single characters take the shape and size of the language button, unfilled so nine of them stay light, with a larger area to tap than to see. */
+.shelf-cell::after { content: ""; position: absolute; inset: -6px; }
+.shelf-cell { position: relative; width: 17px; height: 17px; font: 600 9px/1 "Noto Serif SC", serif; border: 1px solid var(--muted); border-radius: 50%; background: transparent; color: var(--ink); box-shadow: 0 0 0 1px var(--paper-deep), 0 0 0 2px var(--muted); transition: color .25s, border-color .25s, box-shadow .25s, transform .25s; }
+.shelf-cell:hover { color: var(--accent); background: transparent; border-color: var(--accent); box-shadow: 0 0 0 1px var(--paper-deep), 0 0 0 2px var(--accent); transform: scale(1.05); }
+/* Two letters take a smaller size to fit the same circle. */
+.shelf-cell.is-latin { font: 600 8px/1 "Source Serif 4", serif; }
+/* A name runs down the spine from its cell's own place; the cells below move down to make room. */
+/* Same type as the circles. The box takes its width from the text, so it stays centred when a phone scales text up; the bottom padding allows for the last letter's spacing. */
+.shelf-name { --pad: 4px; position: relative; left: 50%; transform: translateX(-50%); width: max-content; min-width: 17px; padding: var(--pad) 0 calc(var(--pad) - .15em); border-radius: 3px; background: var(--paper); writing-mode: vertical-rl; font: 600 9px/17px "Noto Serif SC", serif; letter-spacing: .15em; cursor: pointer; scroll-margin-bottom: 14px; }
+.shelf-name .shelf-entry b { color: var(--accent); }
+:root[lang="en"] .shelf-name { letter-spacing: 0; padding-bottom: var(--pad); }
 .shelf-entry b { display: block; font-weight: 500; color: var(--ink); white-space: nowrap; }
-.shelf-entry span { color: var(--muted); font-size: 12px; }
 .shelf-entry a b { transition: color .2s; }
 .shelf-entry a:hover b { color: var(--accent); }
 
@@ -98,7 +112,6 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 .typed.is-fading { opacity: 0; transition: opacity 1.2s ease; }
 :root[lang="zh-CN"] .typed { width: min(30em, 100%); text-align: justify; text-align-last: left; }
 @media (min-width: 621px) { :root[lang="zh-CN"] .typed { width: min(45em, 100%); } }
-:root[lang="zh-CN"] .typed p { text-indent: 2em; }
 .typed-passage { margin-top: 1em !important; }
 :root[lang="zh-CN"] .role { font: 500 clamp(13px, 1.45vw, 19px)/1.5 "Noto Serif SC", serif; letter-spacing: .08em; text-shadow: none; }
 :root[lang="zh-CN"] .typed { font: 400 clamp(12px, 1.2vw, 16px)/1.8 "Noto Serif SC", serif; letter-spacing: .08em; text-shadow: none; }
@@ -108,7 +121,10 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
   .site-header { height: 66px; }
   .bookshelf { top: 66px; padding-top: 12px; }
   .shelf-cell { width: 24px; height: 24px; font-size: 13px; }
-  .shelf-cell.is-latin { font-size: 10.5px; }
+  .shelf-cell { width: 14px; height: 14px; font-size: 7.5px; }
+  .shelf-cell.is-latin { font-size: 6.5px; }
+  .bookshelf .shelf-commerce { margin-top: 12px; padding-top: 12px; }
+  .shelf-name { --pad: 3.25px; min-width: 14px; font-size: 7.5px; line-height: 14px; }
   .bookshelf ul { gap: 4px; }
   .header-tools { flex-direction: column; gap: 10px; }
   .theme-button, .lang-button { width: 14px; height: 14px; }
@@ -118,6 +134,54 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
   .hero { padding-inline: 56px 20px; }
   .hero-signature { top: 20px; }
 }
+
+/* Chinese reads like a thread-bound book: spine at the right, then the title, then columns running leftward. */
+:root[lang="zh-CN"] .site-header { inset: 0 0 auto auto; width: var(--strip); background: none; backdrop-filter: none; }
+:root[lang="zh-CN"] .site-header::before, :root[lang="zh-CN"] main::before { inset: 0 0 0 auto; border-right: 0; border-left: 1px solid var(--line); }
+:root[lang="zh-CN"] .bookshelf { left: auto; right: 0; }
+:root[lang="zh-CN"] .hero { height: 100svh; min-height: 0; display: block; padding: 0; text-align: left; }
+:root[lang="zh-CN"] .hero-copy { position: absolute; inset: 0 var(--strip) 0 0; width: auto; display: flex; flex-direction: row-reverse; gap: max(12px, clamp(28px, 4vw, 56px) - 2 * clamp(13px, 1.1vw, 15px)); padding: clamp(48px, 10svh, 96px) max(8px, clamp(20px, 3vw, 44px) - 2 * clamp(13px, 1.1vw, 15px)) clamp(40px, 8svh, 72px) clamp(16px, 4vw, 64px); }
+/* A phone has no room for a full slip's width beside the spine: the title and the slips go as far right as they can without touching. */
+@media (max-width: 620px) { :root[lang="zh-CN"] .hero-copy { gap: 8px; padding-right: 6px; padding-left: 6px; } }
+:root[lang="zh-CN"] .hero-signature { position: relative; top: 0; flex: none; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+:root[lang="zh-CN"] .role { height: max-content; writing-mode: vertical-rl; }
+:root[lang="zh-CN"] .hero .hero-name-zh { margin: .6em 0 0; vertical-align: middle; }
+:root[lang="zh-CN"] .hero-divider { position: static; width: 2px; height: clamp(90px, 22svh, 180px); transform: none; background: linear-gradient(180deg, transparent, var(--accent), transparent); }
+:root[lang="zh-CN"] .typed { flex: 1; min-width: 0; width: auto; margin: 0; overflow: auto hidden; scrollbar-width: none; writing-mode: vertical-rl; font-size: clamp(13px, 1.1vw, 15px); line-height: 2; }
+/* Bamboo slips: one slip per column, 2em wide like the line. They sit on the box that scrolls inside .typed, with the text,
+   because phone browsers can't be trusted with background-attachment: local.
+   The drawing holds 37 slips (work\slips\make_slips.py), so 37 slip widths repeat it. components.jsx measures --slip and --slip-x from the real columns.
+   The two cords are in that drawing too, under the slips, rising and falling with them. */
+:root[lang="zh-CN"] .typed { color: var(--slip-ink); }
+/* WeChat's phone browser still draws the scrollbar along the bottom, below the slips. It sits in this extra padding, which is cut off from view. */
+:root[lang="zh-CN"] .typed::-webkit-scrollbar { display: none; }
+:root[lang="zh-CN"] .typed { padding-bottom: 20px; margin-bottom: -20px; clip-path: inset(0 0 20px 0); }
+:root[lang="zh-CN"] .typed-scroll { will-change: transform; box-sizing: border-box; min-width: 100%; padding: 2.75em 0; --slip: 2em; --slip-x: 0px; background-image: var(--slips); background-size: calc(var(--slip) * 37) 100%; background-position: right var(--slip-x) top; background-repeat: repeat-x; }
+/* One blank slip stays at the left of the writing, so the newest column is in view while the slips move on. A real box, because Safari leaves padding out of the scrolling width. */
+:root[lang="zh-CN"] .typed-scroll::after { content: ""; display: block; width: var(--slip); height: 1px; }
+/* As on the old slips: no indent, no blank slip. A new paragraph starts at the top of the next slip; the rest of the last one stays bare. */
+:root[lang="zh-CN"] .typed-passage { margin-top: 0 !important; }
+/* Only the writing fades at the end of a round; the slips stay. */
+:root[lang="zh-CN"] .typed.is-fading { opacity: 1; }
+:root[lang="zh-CN"] .typed.is-fading p { opacity: 0; transition: opacity 1.2s ease; }
+@media (max-width: 620px) { :root[lang="zh-CN"] .typed { font-size: 12px; } }
+/* The passage shows in traditional characters; the quoted original of the Laozi as small seal images (崇羲篆體: work\fonts\build_seal_glyphs.py). */
+:root[lang="zh-CN"] .typed { font-family: "Noto Serif TC", "Noto Serif SC", serif; }
+/* Ordinary text is one step smaller than the headings and the seal images; its line height makes up for it, so every column keeps the same width. */
+:root[lang="zh-CN"] .typed-scroll p { font-size: .84em; line-height: 2.381; font-weight: 500; color: #140f06; }
+:root[lang="zh-CN"] .typed-scroll p.typed-heading { font-size: 1em; line-height: 2; }
+/* Fine small type reads greyer than the bold seal strokes in the same ink, so the ordinary text is a little heavier and darker. */
+.seal { font-size: 1.19em; line-height: 1; color: var(--slip-ink); }
+/* Finished lines are kept out of the layout of the one being typed, which a long piece would otherwise slow down. */
+:root[lang="zh-CN"] .typed-scroll p:not(:last-of-type) { contain: layout style; }
+.typed-heading { font-weight: 600; }
+/* A heading's type is already the seal images' size. */
+:root[lang="zh-CN"] .typed-heading .seal { font-size: 1em; }
+/* A character fades in over about seven characters' typing time. */
+@keyframes ink { from { opacity: 0; } }
+.ink, .seal-glyph { animation: ink 1.4s ease-in-out; }
+/* Placed from the side of the column, not on the text baseline, which browsers put differently: half of the 2em line's spare em sits on the right. */
+.seal-glyph { display: inline-block; width: 1em; height: 1em; margin: 0 .5em .08em 0; vertical-align: top; fill: currentColor; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
