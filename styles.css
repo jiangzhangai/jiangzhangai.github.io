@@ -83,6 +83,10 @@ button { color: inherit; }
 /* Same type as the circles. The box takes its width from the text, so it stays centred when a phone scales text up; the bottom padding allows for the last letter's spacing. */
 .shelf-name { --pad: 4px; position: relative; left: 50%; transform: translateX(-50%); width: max-content; min-width: 17px; padding: var(--pad) 0 calc(var(--pad) - .15em); border-radius: 3px; background: var(--paper); writing-mode: vertical-rl; font: 600 9px/17px "Noto Serif SC", serif; letter-spacing: .15em; cursor: pointer; scroll-margin-bottom: 14px; }
 .shelf-name .shelf-entry b { color: var(--accent); }
+/* The ring stays above its open name, so the name can't be taken for one under the ring before it. */
+.shelf-cell.is-open { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 1px var(--paper-deep), 0 0 0 2px var(--accent); }
+.shelf-cell.is-open { margin-inline: auto; }
+.shelf-cell + .shelf-name { margin-top: 5px; }
 :root[lang="en"] .shelf-name { letter-spacing: 0; padding-bottom: var(--pad); }
 .shelf-entry b { display: block; font-weight: 500; color: var(--ink); white-space: nowrap; }
 .shelf-entry a b { transition: color .2s; }
@@ -147,12 +151,9 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 @media (max-width: 620px) { :root[lang="zh-CN"] .hero-copy { gap: 8px; padding-right: 6px; padding-left: 6px; } }
 /* No title on this side, so the slips take its room. */
 :root[lang="zh-CN"] .hero-signature { display: none; }
-.shelf-seal { display: block; width: 17px; height: 17px; margin: 12px auto 0; background: var(--ink); -webkit-mask: url("assets/name-zh-seal-shuowen.png") center / contain no-repeat; mask: url("assets/name-zh-seal-shuowen.png") center / contain no-repeat; }
-@media (max-width: 620px) { .shelf-seal { width: 14px; height: 14px; } }
-/* The line under the seal gives way on a short screen, so the shelf never has to scroll for it. */
-:root[lang="zh-CN"] .bookshelf { display: flex; flex-direction: column; }
-:root[lang="zh-CN"] .bookshelf ul, .shelf-seal { flex: none; }
-.shelf-line { flex: 0 1 clamp(90px, 22svh, 180px); min-height: 0; width: 2px; margin: 12px auto 0; background: linear-gradient(180deg, transparent, var(--accent), transparent); animation: breathe 4s ease-in-out infinite; }
+/* The seal signs the page from its bottom right corner, the phone's safe area allowed for. */
+.shelf-seal { position: fixed; right: 6px; bottom: calc(6px + env(safe-area-inset-bottom, 0px)); width: 8.5px; height: 8.5px; background: var(--ink); -webkit-mask: url("assets/name-zh-seal-shuowen.png") center / contain no-repeat; mask: url("assets/name-zh-seal-shuowen.png") center / contain no-repeat; }
+@media (max-width: 620px) { .shelf-seal { width: 7px; height: 7px; } }
 :root[lang="zh-CN"] .typed { flex: 1; min-width: 0; width: auto; margin: 0; overflow: auto hidden; scrollbar-width: none; writing-mode: vertical-rl; font-size: clamp(13px, 1.1vw, 15px); line-height: 2; }
 /* Bamboo slips: one slip per column, 2em wide like the line. They sit on the box that scrolls inside .typed, with the text,
    because phone browsers can't be trusted with background-attachment: local.
@@ -190,6 +191,25 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 .ink, .seal-glyph { animation: ink 1.4s ease-in-out; }
 /* Placed from the side of the column, not on the text baseline, which browsers put differently: half of the line's spare width sits on the right. components.jsx measures the values. */
 .seal-glyph { display: inline-block; width: var(--seal-size); height: var(--seal-size); margin: 0 var(--seal-side) var(--seal-gap) 0; vertical-align: top; fill: currentColor; }
+
+/* Noto Serif TC centres its punctuation, as Taiwan's books do. Modern prose takes the mainland cut, at the foot of its place: only these glyphs, cut from Noto Serif SC (OFL). */
+@font-face { font-family: "Prose Punct"; src: url("assets/punct-sc.woff2") format("woff2"); font-weight: 400; font-display: swap; unicode-range: U+FF0C,U+3002,U+3001,U+FF1B,U+FF1A,U+FF1F,U+FF01,U+201C,U+201D,U+2018,U+2019,U+FF08,U+FF09,U+300A,U+300B; }
+/* The home page is modern prose: across the page on the plain ground, in its own scrolling box, with no slips. The books above keep theirs. */
+:root[lang="zh-CN"] .hero.is-prose .hero-copy { display: block; padding: 0; }
+:root[lang="zh-CN"] .hero.is-prose .typed { position: absolute; inset: 0; width: auto; margin: 0; padding: clamp(40px, 9svh, 88px) clamp(18px, 6vw, 72px) 22svh; overflow: hidden auto; clip-path: none; writing-mode: horizontal-tb; color: var(--ink); font-family: "Prose Punct", "Noto Serif TC", "Noto Serif SC", serif; font-size: calc(clamp(14px, 1.15vw, 17px) * var(--ring-scale, 1)); line-height: 1.9; }
+:root[lang="zh-CN"] .hero.is-prose .typed-scroll { min-width: 0; max-width: 42em; margin-inline: auto; padding: 0; background: none; }
+/* The type is drawn back by the same scale as the rings (app.jsx), so a reader's large WeChat setting does not double it. */
+/* A computer has room for twice the measure; a phone keeps its own. */
+@media (min-width: 621px) {
+  :root[lang="zh-CN"] .hero.is-prose .typed { padding-inline: clamp(18px, 3vw, 72px); }
+  :root[lang="zh-CN"] .hero.is-prose .typed-scroll { max-width: 84em; }
+}
+:root[lang="zh-CN"] .hero.is-prose .typed-scroll::after { display: none; }
+:root[lang="zh-CN"] .hero.is-prose .typed-scroll p { font-size: 1em; line-height: 1.9; font-weight: 400; color: var(--ink); }
+:root[lang="zh-CN"] .hero.is-prose .typed-passage { margin-top: .9em !important; }
+:root[lang="zh-CN"] .hero.is-prose .typed-scroll p.typed-heading { margin: 0 0 1.6em !important; font-size: 1.4em; line-height: 1.5; font-weight: 600; text-align: center; text-align-last: center; }
+:root[lang="zh-CN"] .hero.is-prose .typed-scroll p.typed-source { margin-top: 2em !important; font-size: .85em; letter-spacing: 0; text-align: right; text-align-last: right; text-wrap: balance; color: var(--text-soft); }
+.is-prose .typed-heading::after { content: ""; display: block; width: clamp(90px, 13vw, 180px); height: 2px; margin: .55em auto 0; border-radius: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: breathe 4s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

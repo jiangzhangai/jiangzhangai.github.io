@@ -39,7 +39,6 @@ function Bookshelf({ onPiece }) {
 
   React.useEffect(() => {
     if (!open) return;
-    // composedPath, because opening a name replaces the very button that was clicked.
     const close = (event) => { if (event.type === "keydown" ? event.key === "Escape" : !event.composedPath().includes(ref.current)) setOpen(null); };
     document.addEventListener("click", close);
     document.addEventListener("keydown", close);
@@ -61,17 +60,17 @@ function Bookshelf({ onPiece }) {
 
   const closeUnlessLink = (event) => { if (!event.target.closest("a")) setOpen(null); };
 
-  // A name stands in the spine, running down from its cell's own place: a book's full name, or AI's product.
+  // A name stands in the spine, running down under its cell: a book's full name, or AI's product. The cell closes it again.
   // A piece's name stays open when clicked, and the piece plays on the slips.
   const cell = (item) => (
     <li key={item.char}>
-      {open === item
-        ? <div className="shelf-name" onClick={item.piece ? () => onPiece(item.piece, item.glyphs) : closeUnlessLink}>{(item.children || [item]).map(entry)}</div>
-        : <button className={`shelf-cell ${item.char.length > 1 ? "is-latin" : ""}`}
-            aria-label={t(item.en, item.zh)}
-            onClick={() => setOpen(item)}>
-            <span className="ring-char">{item.char}</span>
-          </button>}
+      <button className={`shelf-cell ${item.char.length > 1 ? "is-latin" : ""} ${open === item ? "is-open" : ""}`}
+        aria-label={t(item.en, item.zh)}
+        aria-expanded={open === item}
+        onClick={() => setOpen(open === item ? null : item)}>
+        <span className="ring-char">{item.char}</span>
+      </button>
+      {open === item && <div className="shelf-name" onClick={item.piece ? () => onPiece(item.piece, item.glyphs) : closeUnlessLink}>{(item.children || [item]).map(entry)}</div>}
     </li>
   );
 
@@ -79,7 +78,7 @@ function Bookshelf({ onPiece }) {
     <nav className="bookshelf" ref={ref} aria-label={t("Projects", "项目书架")}>
       <ul>{shelf.thought.map(cell)}</ul>
       <ul className="shelf-commerce">{shelf.commerce.map(cell)}</ul>
-      {lang === "zh" && <><span className="shelf-seal" role="img" aria-label="家族印章" /><span className="shelf-line" aria-hidden="true" /></>}
+      {lang === "zh" && <span className="shelf-seal" role="img" aria-label="家族印章" />}
     </nav>
   );
 }
@@ -91,8 +90,8 @@ const sealChar = (char, i) => (SEAL_GLYPHS[char]
 const withSeal = (text) => text.split(/[]/).map((part, i) => (i % 2 ? <span className="seal" key={i}>{[...part].map(sealChar)}</span> : part));
 //  at the start of a line makes it a heading. An empty line is one blank slip.
 const paragraph = (text, key, gloss) => (
-  <p className={`${gloss ? "typed-gloss " : ""}${key ? "typed-passage" : ""}${text[0] === "" ? "typed-heading" : ""}`} key={key}>
-    {text ? withSeal(text.replace("", "")) : "　"}
+  <p className={`${gloss ? "typed-gloss " : ""}${key ? "typed-passage " : ""}${text[0] === "" ? "typed-heading" : ""} ${text[0] === "" ? "typed-source" : ""}`} key={key}>
+    {text ? withSeal(text.replace(/^[\ue002\ue003]/, "")) : "　"}
   </p>
 );
 
@@ -110,7 +109,7 @@ const ink = (p) => {
 };
 
 // Only the line being typed changes: a piece can run to thousands of seal images, too many to redraw for each character.
-const Line = React.memo(({ text, n, gloss }) => ink(paragraph(text, n, gloss)));
+const Line = React.memo(({ text, n, gloss, still }) => (still ? paragraph(text, n, gloss) : ink(paragraph(text, n, gloss))));
 
 // A line wholly in seal is cut into columns, each with the same characters in ordinary type on the next slip, so few would otherwise read it. Both write together.
 const withGloss = (line, size) => {
@@ -124,7 +123,8 @@ const withGloss = (line, size) => {
   return rows;
 };
 
-function Hero({ typedText, fullText, fading, held, onHold }) {
+// On the Chinese side a chosen book runs on bamboo slips; the home page is modern prose, set across the page (prose below).
+function Hero({ typedText, fullText, fading, held, onHold, slips }) {
   const t = useT();
   const lang = React.useContext(LangContext);
   const role = t(PROFILE.roleEn, PROFILE.roleZh);
@@ -198,6 +198,26 @@ function Hero({ typedText, fullText, fading, held, onHold }) {
   const follow = () => {
     const el = typedRef.current;
     const scroll = el.firstChild;
+    // Prose moves up in the same way. Its height is read from the layout: a transform would change the scrolling height.
+    if (!slips) {
+      followedWidth.current = scroll.offsetHeight;
+      const box = getComputedStyle(el);
+      const rise = scroll.offsetHeight + parseFloat(box.paddingTop) + parseFloat(box.paddingBottom) - el.clientHeight;
+      if (rise <= 0) return;
+      if (!scroll.style.transform) {
+        const start = el.scrollTop;
+        el.scrollTop = 0;
+        scroll.style.transition = "none";
+        scroll.style.transform = `translateY(${-start}px)`;
+        scroll.getBoundingClientRect();
+      }
+      const text = getComputedStyle(scroll.lastElementChild);
+      const letter = parseFloat(text.fontSize) + (parseFloat(text.letterSpacing) || 0);
+      const seconds = 1.05 * (scroll.clientWidth / letter) * (stepOf(fullText) / 1000);
+      scroll.style.transition = `transform ${seconds.toFixed(2)}s linear`;
+      scroll.style.transform = `translateY(${-rise}px)`;
+      return;
+    }
     followedWidth.current = el.scrollWidth;
     const target = el.clientWidth - el.scrollWidth;
     if (target >= 0) return;
@@ -224,10 +244,11 @@ function Hero({ typedText, fullText, fading, held, onHold }) {
     const el = typedRef.current;
     const scroll = el.firstChild;
     if (!scroll.style.transform) return;
-    const at = new DOMMatrix(getComputedStyle(scroll).transform).m41;
+    const at = new DOMMatrix(getComputedStyle(scroll).transform);
     scroll.style.transition = "none";
     scroll.style.transform = "";
-    el.scrollLeft = -at;
+    if (slips) el.scrollLeft = -at.m41;
+    else el.scrollTop = -at.m42;
   };
   // People tap moving text as they would a video: one tap stops it to read, the next goes on. A tap that only closes the open menu does neither, and a finished passage has nothing to stop.
   const onTap = () => {
@@ -249,7 +270,7 @@ function Hero({ typedText, fullText, fading, held, onHold }) {
     follow();
   };
   React.useEffect(() => {
-    if (lang !== "zh") return;
+    if (lang !== "zh" || !slips) return;
     // WeChat enlarges the type by its reader's font setting, but sizes in em don't follow. So the seal images and both columns' steps are worked out from the type as it really is, which keeps them one to one and each column on one slip.
     const measureColumn = () => {
       const scroll = typedRef.current.firstChild;
@@ -284,12 +305,32 @@ function Hero({ typedText, fullText, fading, held, onHold }) {
       followedWidth.current = 0;
       columns.current = 0;
     };
-  }, [lang]);
+  }, [lang, slips]);
   React.useEffect(() => {
     if (lang !== "zh") return;
-    // The Chinese passage scrolls sideways: wheeling down moves on to the columns at the left.
     const hero = heroRef.current;
     const el = typedRef.current;
+    // Prose scrolls in its own box, downward. The reader's hand leaves the newest line; coming back near the end picks it up again.
+    if (!slips) {
+      const onProseScroll = () => {
+        if (el.scrollHeight - el.clientHeight - el.scrollTop <= 60) atNewest.current = true;
+        else if (Date.now() - touched.current < 1500) atNewest.current = false;
+      };
+      el.addEventListener("wheel", handOver, { passive: true });
+      el.addEventListener("touchmove", handOver, { passive: true });
+      el.addEventListener("scroll", onProseScroll, { passive: true });
+      return () => {
+        el.removeEventListener("wheel", handOver);
+        el.removeEventListener("touchmove", handOver);
+        el.removeEventListener("scroll", onProseScroll);
+        el.firstChild.style.transition = "none";
+        el.firstChild.style.transform = "";
+        el.scrollTop = 0;
+        atNewest.current = true;
+        followedWidth.current = 0;
+      };
+    }
+    // The Chinese passage scrolls sideways: wheeling down moves on to the columns at the left.
     // Only the reader's own hand counts as leaving the newest column; the page's own scrolling passes through other positions too.
     const onWheel = (event) => {
       handOver();
@@ -303,11 +344,22 @@ function Hero({ typedText, fullText, fading, held, onHold }) {
     el.addEventListener("touchmove", handOver, { passive: true });
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => { hero.removeEventListener("wheel", onWheel); el.removeEventListener("touchmove", handOver); el.removeEventListener("scroll", onScroll); };
-  }, [lang]);
+  }, [lang, slips]);
   React.useEffect(() => {
     if (lang === "zh") {
-      // New columns open at the left and push the old ones right, unless the reader has gone back to earlier columns.
       const el = typedRef.current;
+      if (!slips) {
+        if (!typedText) {
+          atNewest.current = true;
+          followedWidth.current = 0;
+          el.firstChild.style.transition = "none";
+          el.firstChild.style.transform = "";
+          el.scrollTop = 0;
+        }
+        if (atNewest.current && el.firstChild.offsetHeight !== followedWidth.current && Date.now() - touched.current > 1500) follow();
+        return;
+      }
+      // New columns open at the left and push the old ones right, unless the reader has gone back to earlier columns.
       alignSlips();
       if (!typedText) {
         atNewest.current = true;
@@ -324,7 +376,7 @@ function Hero({ typedText, fullText, fading, held, onHold }) {
     if (bottom > target && bottom < innerHeight + 80) window.scrollBy({ top: bottom - target, behavior: "smooth" });
   }, [typedText]);
   return (
-    <section className="hero" id="top" ref={heroRef} onClick={onTap}>
+    <section className={`hero ${lang === "zh" && !slips ? "is-prose" : ""}`} id="top" ref={heroRef} onClick={onTap}>
       <div className="hero-map" aria-hidden="true">
         <i className="contour contour-a" />
         <i className="contour contour-b" />
@@ -342,7 +394,7 @@ function Hero({ typedText, fullText, fading, held, onHold }) {
         </div>
         <div className={`typed ${fading ? "is-fading" : ""}`} ref={typedRef}>
           <div className="typed-scroll">
-            {isLine ? <p>{lineChunks}</p> : rows.map((row, i) => <Line key={i} text={row.text} n={i} gloss={row.gloss} />)}
+            {isLine ? <p>{lineChunks}</p> : rows.map((row, i) => <Line key={i} text={row.text} n={i} gloss={row.gloss} still={!slips && !i} />)}
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-// WeChat enlarges type by its reader's font setting, which would burst the small rings of the menu. Up to 112% it still fits well; beyond that the ring's character is drawn back to that size.
+// WeChat enlarges type by its reader's font setting, which would burst the small rings of the menu and double the home page's prose. Up to 112% it still fits well; beyond that both are drawn back to that size.
 {
   const probe = document.body.appendChild(document.createElement("div"));
   probe.style.fontSize = "100px";
@@ -43,18 +43,19 @@ function App() {
 
   React.useEffect(() => {
     document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
-    // A blank character, not an empty title: given none, a phone's title bar shows the address instead.
-    document.title = lang === "zh" ? "⠀" : PROFILE.roleEn;
+    document.title = lang === "zh" ? PROFILE.roleZh : PROFILE.roleEn;
     localStorage.setItem("lang", lang);
   }, [lang]);
 
-  // Chinese runs vertically, where curly quotes come out differently from browser to browser: use the vertical forms, which hold in all of them.
-  const fullText = lang === "zh" ? (piece ? PIECES_ZH[piece] : PLAYLIST_ZH[play % PLAYLIST_ZH.length]).join("\n").replace(/“/g, "﹃").replace(/”/g, "﹄") : TYPED_LINES.join(" · ");
+  // A book runs vertically, where curly quotes come out differently from browser to browser: use the vertical forms, which hold in all of them.
+  const fullText = lang === "zh" ? (piece ? PIECES_ZH[piece].join("\n").replace(/“/g, "﹃").replace(/”/g, "﹄") : PLAYLIST_ZH[play % PLAYLIST_ZH.length].join("\n")) : TYPED_LINES.join(" · ");
 
   React.useEffect(() => {
     const current = fullText;
     const step = lang === "zh" ? stepOf(current) : 120;
-    let char = 0;
+    // The home page's title stands there from the start; only its text is written out. Typed into its centred line, it would seem to slide in.
+    const start = lang === "zh" && !piece && current[0] === "" ? current.indexOf("\n") + 1 : 0;
+    let char = start;
     let timer;
     // After the rest, clear the round and start the next one, but only once the reader has stopped scrolling for five minutes.
     let lastScroll = 0;
@@ -101,7 +102,7 @@ function App() {
     held.current = false;
     waiting.current = null;
     setFading(false);
-    setTypedText("");
+    setTypedText(current.slice(0, start));
     timer = setTimeout(tick, 300);
     return () => { clearTimeout(timer); removeEventListener("scroll", onScroll, { capture: true }); };
   }, [lang, play, piece]);
@@ -121,7 +122,7 @@ function App() {
       <Header dark={dark} onToggle={() => setDark((value) => !value)} onLang={() => setLang((value) => (value === "zh" ? "en" : "zh"))} />
       <Bookshelf onPiece={choosePiece} />
       <main>
-        <Hero typedText={typedText} fullText={fullText} fading={fading} held={held} onHold={hold} />
+        <Hero typedText={typedText} fullText={fullText} fading={fading} held={held} onHold={hold} slips={Boolean(piece)} />
       </main>
     </LangContext.Provider>
   );

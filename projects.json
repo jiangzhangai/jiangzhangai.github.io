@@ -3,14 +3,7 @@
   "thought": [
     { "char": "伏", "zh": "伏羲之道", "en": "The Way of Fuxi", "url": "/fu/", "status": "soon" },
     { "char": "老", "zh": "《老子》", "en": "Laozi", "piece": "老", "glyphs": "seal_laozi.js?v=20261101-176" },
-    { "char": "庄", "zh": "庄子之道", "en": "The Way of Zhuangzi", "url": "/zhuang/", "status": "soon" },
-    { "char": "医", "zh": "中医之道", "en": "The Way of Chinese Medicine", "url": "/yi/", "status": "soon" },
-    { "char": "黄", "zh": "黄帝内经", "en": "Huangdi Neijing", "url": "/huang/", "status": "soon" },
-    { "char": "易", "zh": "易经", "en": "Yijing", "url": "/fang/", "status": "soon" },
-    { "char": "资", "zh": "资治通鉴", "en": "Zizhi Tongjian", "url": "/zi/", "status": "soon" },
-    { "char": "史", "zh": "史记", "en": "Shiji", "url": "/shi/", "status": "soon" },
-    { "char": "永", "zh": "永乐大典", "en": "Yongle Encyclopedia", "url": "/yong/", "status": "soon" },
-    { "char": "滕", "zh": "《滕王阁序》", "en": "Preface to the Pavilion of Prince Teng", "piece": "滕" }
+    { "char": "庄", "zh": "《庄子》", "en": "Zhuangzi", "piece": "庄" }
   ],
   "commerce": [
     {

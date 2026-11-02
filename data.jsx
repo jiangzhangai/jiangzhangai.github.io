@@ -1,6 +1,6 @@
 const PROFILE = {
   roleEn: "AI Lends Its Wings · Classics Chase the Light · Thought Endures",
-  roleZh: "追光阁",
+  roleZh: "中华先秦哲学思想研究",
 };
 
 const TYPED_LINES = [
