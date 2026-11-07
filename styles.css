@@ -34,8 +34,8 @@
 /* Phones must not enlarge the text on their own: the slips are measured from its size. */
 html { scroll-behavior: smooth; background: var(--paper); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); font-weight: 300; }
-/* Text can't be selected or long-pressed to copy (app.jsx also blocks copy and the context menu). */
-body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* Under BLOCK_COPY (data.jsx) text can't be selected or long-pressed to copy (app.jsx also blocks copy and the context menu). */
+:root.no-copy body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 a { color: inherit; text-decoration: none; }
 button { color: inherit; }
 ::selection { background: var(--accent); color: #fff; }
@@ -64,12 +64,12 @@ button { color: inherit; }
 .taiji::after { bottom: 0; background: var(--paper); border: 2.5px solid var(--ink); }
 .taiji.is-dark { transform: rotate(180deg); }
 
-.bookshelf { position: fixed; top: 78px; bottom: 0; left: 0; z-index: 45; width: var(--strip); overflow-y: auto; scrollbar-width: none; padding: 14px 0 24px; }
+.bookshelf { position: fixed; top: 78px; bottom: 0; left: 0; z-index: 45; width: var(--strip); overflow-y: auto; scrollbar-width: none; padding: 14px 0 24px; cursor: pointer; }
 .bookshelf ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .bookshelf ul:not(.shelf-commerce) { gap: 0; }
 .bookshelf ul:not(.shelf-commerce) li + li::before { content: "·"; display: block; color: var(--muted); font: 500 15px/12px "Noto Serif SC", serif; text-align: center; }
 /* The divider sits one menu step lower, as far from the last circle as from AI's circle. */
-.bookshelf .shelf-commerce { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); margin-inline: 22%; }
+.bookshelf .shelf-canon, .bookshelf .shelf-commerce { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); margin-inline: 22%; }
 .shelf-cell { width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 3px; background: transparent; color: var(--ink); font: 500 15px/1 "Noto Serif SC", serif; cursor: pointer; transition: color .2s, background .2s; }
 .shelf-cell:hover { color: var(--accent); background: var(--paper); }
 .shelf-cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -83,6 +83,10 @@ button { color: inherit; }
 /* Same type as the circles. The box takes its width from the text, so it stays centred when a phone scales text up; the bottom padding allows for the last letter's spacing. */
 .shelf-name { --pad: 4px; position: relative; left: 50%; transform: translateX(-50%); width: max-content; min-width: 17px; padding: var(--pad) 0 calc(var(--pad) - .15em); border-radius: 3px; background: var(--paper); writing-mode: vertical-rl; font: 600 9px/17px "Noto Serif SC", serif; letter-spacing: .15em; cursor: pointer; scroll-margin-bottom: 14px; }
 .shelf-name .shelf-entry b { color: var(--accent); }
+/* Several books under one cell run on down the one strip; the books not yet carried are dim, so a click that plays nothing is no surprise. */
+.shelf-canon .shelf-name { display: flex; gap: 7px; }
+.shelf-canon .shelf-name .shelf-entry.is-soon b { color: var(--text-soft); }
+:root[lang="en"] .shelf-canon .shelf-name { flex-direction: column; gap: 3px; }
 /* The ring stays above its open name, so the name can't be taken for one under the ring before it. */
 .shelf-cell.is-open { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 1px var(--paper-deep), 0 0 0 2px var(--accent); }
 .shelf-cell.is-open { margin-inline: auto; }
@@ -106,16 +110,9 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 .contour-b { width: 75vw; height: 105vw; right: -42vw; top: -15vw; transform: rotate(27deg); }
 .contour-c { width: 55vw; height: 45vw; left: 16vw; bottom: -31vw; }
 .hero-copy { position: relative; width: 100%; min-width: 0; }
-/* The title rides up to the header and stays there while the passage scrolls on. */
-.hero-signature { position: sticky; top: 24px; z-index: 60; }
-.hero-word { white-space: nowrap; }
-.hero .hero-name-zh { display: inline-block; vertical-align: -.04em; margin-left: .3em; width: .6em; height: .6em; background: currentColor; -webkit-mask: url("assets/name-zh-seal-shuowen.png") center / contain no-repeat; mask: url("assets/name-zh-seal-shuowen.png") center / contain no-repeat; }
-.hero-divider { position: absolute; left: 50%; bottom: -26px; width: clamp(90px, 13vw, 180px); height: 2px; border-radius: 1px; transform: translateX(-50%); background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: breathe 4s ease-in-out infinite; }
 @keyframes breathe { 0%, 100% { opacity: .15; } 50% { opacity: 1; } }
-.role { margin: 0; font: 400 clamp(15px, 1.8vw, 24px)/1.3 "Pinyon Script", cursive; text-shadow: .3px 0 currentColor, -.15px 0 currentColor; }
 .typed { min-height: 30px; margin: 52px auto 0; color: var(--text-soft); font: 400 clamp(16px, 1.6vw, 22px)/1.3 "Pinyon Script", cursive; text-shadow: .25px 0 currentColor; }
 .typed p { margin: 0; }
-.typed-rest { color: transparent; text-shadow: none; }
 .typed.is-fading { opacity: 0; transition: opacity 1.2s ease; }
 :root[lang="zh-CN"] .typed { width: min(30em, 100%); text-align: justify; text-align-last: left; }
 @media (min-width: 621px) { :root[lang="zh-CN"] .typed { width: min(45em, 100%); } }
@@ -129,7 +126,7 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
   .shelf-cell { width: 24px; height: 24px; font-size: 13px; }
   .shelf-cell { width: 14px; height: 14px; font-size: 7.5px; }
   .shelf-cell.is-latin { font-size: 6.5px; }
-  .bookshelf .shelf-commerce { margin-top: 12px; padding-top: 12px; }
+  .bookshelf .shelf-canon, .bookshelf .shelf-commerce { margin-top: 12px; padding-top: 12px; }
   .shelf-name { --pad: 3.25px; min-width: 14px; font-size: 7.5px; line-height: 14px; }
   .bookshelf ul { gap: 4px; }
   .header-tools { flex-direction: column; gap: 10px; }
@@ -138,7 +135,6 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
   :root[lang="en"] .lang-button { font-size: 8.5px; }
   .taiji::before, .taiji::after { border-width: 2px; }
   .hero { padding-inline: 56px 20px; }
-  .hero-signature { top: 20px; }
 }
 
 /* Chinese reads like a thread-bound book: spine at the right, then the title, then columns running leftward. */
@@ -149,8 +145,6 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 :root[lang="zh-CN"] .hero-copy { position: absolute; inset: 0 var(--strip) 0 0; width: auto; display: flex; flex-direction: row-reverse; gap: max(12px, clamp(28px, 4vw, 56px) - 2 * clamp(13px, 1.1vw, 15px)); padding: clamp(48px, 10svh, 96px) max(8px, clamp(20px, 3vw, 44px) - 2 * clamp(13px, 1.1vw, 15px)) clamp(40px, 8svh, 72px) clamp(16px, 4vw, 64px); }
 /* A phone has no room for a full slip's width beside the spine: the title and the slips go as far right as they can without touching. */
 @media (max-width: 620px) { :root[lang="zh-CN"] .hero-copy { gap: 8px; padding-right: 6px; padding-left: 6px; } }
-/* No title on this side, so the slips take its room. */
-:root[lang="zh-CN"] .hero-signature { display: none; }
 /* The seal signs the page from its bottom right corner, the phone's safe area allowed for. */
 .shelf-seal { position: fixed; right: 6px; bottom: calc(6px + env(safe-area-inset-bottom, 0px)); width: 8.5px; height: 8.5px; background: var(--ink); -webkit-mask: url("assets/name-zh-seal-shuowen.png") center / contain no-repeat; mask: url("assets/name-zh-seal-shuowen.png") center / contain no-repeat; }
 @media (max-width: 620px) { .shelf-seal { width: 7px; height: 7px; } }
@@ -195,20 +189,34 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 /* Noto Serif TC centres its punctuation, as Taiwan's books do. Modern prose takes the mainland cut, at the foot of its place: only these glyphs, cut from Noto Serif SC (OFL). */
 @font-face { font-family: "Prose Punct"; src: url("assets/punct-sc.woff2") format("woff2"); font-weight: 400; font-display: swap; unicode-range: U+FF0C,U+3002,U+3001,U+FF1B,U+FF1A,U+FF1F,U+FF01,U+201C,U+201D,U+2018,U+2019,U+FF08,U+FF09,U+300A,U+300B; }
 /* The home page is modern prose: across the page on the plain ground, in its own scrolling box, with no slips. The books above keep theirs. */
-:root[lang="zh-CN"] .hero.is-prose .hero-copy { display: block; padding: 0; }
-:root[lang="zh-CN"] .hero.is-prose .typed { position: absolute; inset: 0; width: auto; margin: 0; padding: clamp(40px, 9svh, 88px) clamp(18px, 6vw, 72px) 22svh; overflow: hidden auto; clip-path: none; writing-mode: horizontal-tb; color: var(--ink); font-family: "Prose Punct", "Noto Serif TC", "Noto Serif SC", serif; font-size: calc(clamp(14px, 1.15vw, 17px) * var(--ring-scale, 1)); line-height: 1.9; }
-:root[lang="zh-CN"] .hero.is-prose .typed-scroll { min-width: 0; max-width: 42em; margin-inline: auto; padding: 0; background: none; }
+:root .hero.is-prose .hero-copy { display: block; padding: 0; }
+:root .hero.is-prose .typed { position: absolute; inset: 0; width: auto; margin: 0; padding: clamp(40px, 9svh, 88px) clamp(18px, 6vw, 72px) 22svh; overflow: hidden auto; clip-path: none; writing-mode: horizontal-tb; color: var(--ink); font-family: "Prose Punct", "Noto Serif TC", "Noto Serif SC", serif; font-size: calc(clamp(14px, 1.15vw, 17px) * var(--ring-scale, 1)); line-height: 1.9; }
+:root .hero.is-prose .typed-scroll { min-width: 0; max-width: 42em; margin-inline: auto; padding: 0; background: none; }
 /* The type is drawn back by the same scale as the rings (app.jsx), so a reader's large WeChat setting does not double it. */
 /* A computer has room for twice the measure; a phone keeps its own. */
 @media (min-width: 621px) {
-  :root[lang="zh-CN"] .hero.is-prose .typed { padding-inline: clamp(18px, 3vw, 72px); }
-  :root[lang="zh-CN"] .hero.is-prose .typed-scroll { max-width: 84em; }
+  :root .hero.is-prose .typed { padding-inline: clamp(18px, 3vw, 72px); }
+  :root .hero.is-prose .typed-scroll { max-width: 84em; }
 }
-:root[lang="zh-CN"] .hero.is-prose .typed-scroll::after { display: none; }
-:root[lang="zh-CN"] .hero.is-prose .typed-scroll p { font-size: 1em; line-height: 1.9; font-weight: 400; color: var(--ink); }
-:root[lang="zh-CN"] .hero.is-prose .typed-passage { margin-top: .9em !important; }
-:root[lang="zh-CN"] .hero.is-prose .typed-scroll p.typed-heading { margin: 0 0 1.6em !important; font-size: 1.4em; line-height: 1.5; font-weight: 600; text-align: center; text-align-last: center; }
-:root[lang="zh-CN"] .hero.is-prose .typed-scroll p.typed-source { margin-top: 2em !important; font-size: .85em; letter-spacing: 0; text-align: right; text-align-last: right; text-wrap: balance; color: var(--text-soft); }
+:root .hero.is-prose .typed-scroll::after { display: none; }
+:root .hero.is-prose .typed-scroll p { font-size: 1em; line-height: 1.9; font-weight: 400; color: var(--ink); }
+:root .hero.is-prose .typed-passage { margin-top: .9em !important; }
+:root .hero.is-prose .typed-scroll p.typed-heading { margin: 0 0 1.6em !important; font-size: 1.4em; line-height: 1.5; font-weight: 600; text-align: center; text-align-last: center; }
+:root .hero.is-prose .typed-scroll p.typed-source { margin-top: 2em !important; font-size: .85em; letter-spacing: 0; text-align: right; text-align-last: right; text-wrap: balance; color: var(--text-soft); }
+/* A credit under the title stands with it, and each chapter's title sets its chapter off from the last. */
+:root .hero.is-prose .typed-scroll p.typed-heading + p.typed-source { margin: -.4em 0 3.2em !important; text-align: center; text-align-last: center; }
+:root .hero.is-prose .typed-scroll p + p.typed-heading { margin-top: 2.2em !important; }
+/* English prose sits to the right of the spine and reads best set flush left. */
+.hero.is-prose { height: 100svh; min-height: 0; display: block; padding: 0; text-align: left; touch-action: manipulation; }
+:root[lang="en"] .hero.is-prose .hero-copy { position: absolute; inset: 0 0 0 var(--strip); width: auto; }
+:root[lang="en"] .hero.is-prose .typed { font-family: "Source Serif 4", Georgia, serif; font-size: calc(clamp(15px, 1.2vw, 18px) * var(--ring-scale, 1)); line-height: 1.75; letter-spacing: 0; text-shadow: none; text-align: left; }
+:root[lang="en"] .hero.is-prose .typed-scroll p { line-height: 1.75; }
+/* Latin letters are narrow: a line much longer than this is hard to follow. */
+:root[lang="en"] .hero.is-prose .typed-scroll { max-width: 46em; }
+:root[lang="en"] .site-header { inset: 0 auto auto 0; width: var(--strip); background: none; backdrop-filter: none; }
+/* An English name reads across, in a box beside the spine. */
+:root[lang="en"] .bookshelf { overflow: visible; }
+:root[lang="en"] .shelf-cell + .shelf-name { position: absolute; left: calc(100% + 8px); transform: none; margin: -1.9em 0 0; padding: 5px 9px; border: 1px solid var(--line); writing-mode: horizontal-tb; font: 600 calc(13px * var(--ring-scale, 1))/1.3 "Source Serif 4", Georgia, serif; letter-spacing: 0; }
 .is-prose .typed-heading::after { content: ""; display: block; width: clamp(90px, 13vw, 180px); height: 2px; margin: .55em auto 0; border-radius: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: breathe 4s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {

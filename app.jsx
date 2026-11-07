@@ -35,6 +35,8 @@ function App() {
 
   React.useEffect(() => {
     // Deters copying; a screenshot still works.
+    if (!BLOCK_COPY) return undefined;
+    document.documentElement.classList.add("no-copy");
     const block = (event) => event.preventDefault();
     const events = ["copy", "cut", "contextmenu", "selectstart", "dragstart"];
     events.forEach((name) => document.addEventListener(name, block));
@@ -48,13 +50,15 @@ function App() {
   }, [lang]);
 
   // A book runs vertically, where curly quotes come out differently from browser to browser: use the vertical forms, which hold in all of them.
-  const fullText = lang === "zh" ? (piece ? PIECES_ZH[piece].join("\n").replace(/“/g, "﹃").replace(/”/g, "﹄") : PLAYLIST_ZH[play % PLAYLIST_ZH.length].join("\n")) : TYPED_LINES.join(" · ");
+  // The study of the classics is modern prose, set like the home page and not on the slips.
+  const slips = lang === "zh" && Boolean(piece) && piece !== "考";
+  const fullText = lang === "zh" ? (piece ? (slips ? PIECES_ZH[piece].join("\n").replace(/“/g, "﹃").replace(/”/g, "﹄") : PIECES_ZH[piece].join("\n")) : PLAYLIST_ZH[play % PLAYLIST_ZH.length].join("\n")) : (PIECES_EN[piece] || PLAYLIST_EN[play % PLAYLIST_EN.length]).join("\n");
 
   React.useEffect(() => {
     const current = fullText;
-    const step = lang === "zh" ? stepOf(current) : 120;
+    const step = lang === "zh" ? stepOf(current) : EN_STEP;
     // The home page's title stands there from the start; only its text is written out. Typed into its centred line, it would seem to slide in.
-    const start = lang === "zh" && !piece && current[0] === "" ? current.indexOf("\n") + 1 : 0;
+    const start = !slips && current[0] === "" ? current.indexOf("\n") + 1 : 0;
     let char = start;
     let timer;
     // After the rest, clear the round and start the next one, but only once the reader has stopped scrolling for five minutes.
@@ -85,13 +89,7 @@ function App() {
         return;
       }
       if (char === current.length) {
-        if (lang === "zh") {
-          timer = setTimeout(next, 10 * 60 * 1000); // Ten minutes to read it again and think.
-          return;
-        }
-        char = 0;
-        setTypedText("");
-        timer = setTimeout(tick, 600);
+        timer = setTimeout(next, 10 * 60 * 1000); // Ten minutes to read it again and think.
         return;
       }
       char += 1;
@@ -109,20 +107,23 @@ function App() {
 
   // A piece in seal brings its own images, loaded only now because they are large.
   const choosePiece = (name, glyphs) => {
-    if (lang !== "zh") return;
-    if (!glyphs) { setPiece(name); return; }
+    // In English only what has been translated plays; seal images belong to the Chinese.
+    if (lang !== "zh" && !PIECES_EN[name]) return;
+    if (lang !== "zh" || !glyphs) { setPiece(name); return; }
     const script = document.createElement("script");
     script.src = glyphs;
     script.onload = () => setPiece(name);
     document.head.appendChild(script);
   };
+  // A tap on the bare spine goes between the two opening essays: the home page's and, from it, the study of the classics.
+  const onSpine = () => (piece ? setPiece(null) : choosePiece("考"));
 
   return (
     <LangContext.Provider value={lang}>
       <Header dark={dark} onToggle={() => setDark((value) => !value)} onLang={() => setLang((value) => (value === "zh" ? "en" : "zh"))} />
-      <Bookshelf onPiece={choosePiece} />
+      <Bookshelf onPiece={choosePiece} onSpine={onSpine} />
       <main>
-        <Hero typedText={typedText} fullText={fullText} fading={fading} held={held} onHold={hold} slips={Boolean(piece)} />
+        <Hero typedText={typedText} fullText={fullText} fading={fading} held={held} onHold={hold} slips={slips} />
       </main>
     </LangContext.Provider>
   );

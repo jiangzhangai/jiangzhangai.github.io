@@ -1,14 +1,10 @@
 const PROFILE = {
-  roleEn: "AI Lends Its Wings · Classics Chase the Light · Thought Endures",
+  roleEn: "Pre-Qin Chinese Philosophy",
   roleZh: "中华先秦哲学思想研究",
 };
 
-const TYPED_LINES = [
-  "Mathematics · Computing · Artificial Intelligence",
-  "Teach · Build · Keep learning",
-  "I am not what I was.",
-  "The Laozi Decision Support System",
-];
+// Off while John reviews and copies text; turn on again at publication.
+const BLOCK_COPY = true;
 
 // The home page playlist ships encoded (playlist.js), so the passages are not plain text in the source.
 // Edit work/playlist/playlist_zh.json and run encode_playlist.py; the key must match it.
@@ -21,3 +17,5 @@ const decodePlaylist = (code) => {
 const PLAYLIST_ZH = decodePlaylist(PLAYLIST_CODE);
 // Pieces chosen from the bookshelf, by name: played on the slips in place of the playlist.
 const PIECES_ZH = decodePlaylist(PIECES_CODE);
+const PLAYLIST_EN = decodePlaylist(PLAYLIST_EN_CODE);
+const PIECES_EN = decodePlaylist(PIECES_EN_CODE);

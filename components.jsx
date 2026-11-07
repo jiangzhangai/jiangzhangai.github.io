@@ -1,5 +1,6 @@
 const LangContext = React.createContext("en");
 const TYPE_STEP = 200; // Milliseconds per character of the Chinese passage.
+const EN_STEP = 50; // Per letter of the English passage: about the same time to read.
 // Seal with ordinary type beside it goes at half that speed: each column brings two slips.
 const stepOf = (text) => (text.includes("\n") ? 2 * TYPE_STEP : TYPE_STEP);
 
@@ -14,7 +15,7 @@ function Header({ dark, onToggle, onLang }) {
     <header className="site-header">
       <div className="header-tools">
         <button className="lang-button" onClick={onLang} aria-label={t("切换到中文", "Switch to English")}>
-          <span className="ring-char">{t("A", "中")}</span>
+          <span className="ring-char">{t("E", "中")}</span>
         </button>
         <button className="theme-button" onClick={onToggle} aria-label={t("Toggle light and dark theme", "切换明暗主题")}>
           <span className={`taiji ${dark ? "is-dark" : ""}`} aria-hidden="true" />
@@ -25,11 +26,13 @@ function Header({ dark, onToggle, onLang }) {
 }
 
 // The spine is a bookshelf: one cell per project, read from projects.json.
-function Bookshelf({ onPiece }) {
+function Bookshelf({ onPiece, onSpine }) {
   const t = useT();
-  const lang = React.useContext(LangContext);
   const [shelf, setShelf] = React.useState(null);
   const [open, setOpen] = React.useState(null);
+  // An English name lies across the text, so it steps aside once its piece plays; the ring stays lit.
+  const [playing, setPlaying] = React.useState(null);
+  const lang = React.useContext(LangContext);
   const ref = React.useRef(null);
 
   React.useEffect(() => {
@@ -50,8 +53,13 @@ function Bookshelf({ onPiece }) {
   if (!shelf) return null;
 
   // Book pages live on this site and open in place; products are other sites and open in a new tab.
-  const entry = (item) => (
-    <div className="shelf-entry" key={item.zh}>
+  const play = (owner, piece, glyphs) => {
+    onPiece(piece, glyphs);
+    if (PIECES_EN[piece]) setPlaying(owner);
+  };
+  // A book under a cell may play as a piece of its own; those not yet carried are shown dim (styles.css).
+  const entry = (item, owner) => (
+    <div className={`shelf-entry ${item.status === "soon" ? "is-soon" : ""}`} key={item.zh} onClick={item.piece && item !== owner ? (event) => { event.stopPropagation(); play(owner, item.piece, item.glyphs); } : undefined}>
       {item.status === "live"
         ? <a href={item.url} {...(item.url.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}><b>{t(item.en, item.zh)}</b></a>
         : <b>{t(item.en, item.zh)}</b>}
@@ -59,6 +67,13 @@ function Bookshelf({ onPiece }) {
   );
 
   const closeUnlessLink = (event) => { if (!event.target.closest("a")) setOpen(null); };
+  // Anywhere on the spine but a cell or its name.
+  const tapSpine = (event) => {
+    if (event.target.closest(".shelf-cell, .shelf-name")) return;
+    setOpen(null);
+    setPlaying(null);
+    onSpine();
+  };
 
   // A name stands in the spine, running down under its cell: a book's full name, or AI's product. The cell closes it again.
   // A piece's name stays open when clicked, and the piece plays on the slips.
@@ -67,18 +82,19 @@ function Bookshelf({ onPiece }) {
       <button className={`shelf-cell ${item.char.length > 1 ? "is-latin" : ""} ${open === item ? "is-open" : ""}`}
         aria-label={t(item.en, item.zh)}
         aria-expanded={open === item}
-        onClick={() => setOpen(open === item ? null : item)}>
+        onClick={() => { setPlaying(null); setOpen(open === item ? null : item); }}>
         <span className="ring-char">{item.char}</span>
       </button>
-      {open === item && <div className="shelf-name" onClick={item.piece ? () => onPiece(item.piece, item.glyphs) : closeUnlessLink}>{(item.children || [item]).map(entry)}</div>}
+      {open === item && (lang === "zh" || playing !== item) && <div className="shelf-name" onClick={item.piece ? () => play(item, item.piece, item.glyphs) : closeUnlessLink}>{(item.children || [item]).filter((child) => lang === "zh" || !child.piece || PIECES_EN[child.piece]).map((child) => entry(child, item))}</div>}
     </li>
   );
 
   return (
-    <nav className="bookshelf" ref={ref} aria-label={t("Projects", "项目书架")}>
+    <nav className="bookshelf" ref={ref} aria-label={t("Projects", "项目书架")} onClick={tapSpine}>
       <ul>{shelf.thought.map(cell)}</ul>
+      <ul className="shelf-canon">{shelf.canon.map(cell)}</ul>
       <ul className="shelf-commerce">{shelf.commerce.map(cell)}</ul>
-      {lang === "zh" && <span className="shelf-seal" role="img" aria-label="家族印章" />}
+      <span className="shelf-seal" role="img" aria-label={t("Family seal", "家族印章")} />
     </nav>
   );
 }
@@ -128,20 +144,8 @@ function Hero({ typedText, fullText, fading, held, onHold, slips }) {
   const t = useT();
   const lang = React.useContext(LangContext);
   const role = t(PROFILE.roleEn, PROFILE.roleZh);
-  // Line breaks only after a "·"; each phrase stays whole.
-  const parts = role.split(/(?<=·) /);
-  const seal = <span className="hero-name-zh" role="img" aria-label={t("Family seal", "家族印章")} />;
-  // A single line is laid out in full and revealed left to right, keeping its "·" phrases whole.
-  // A multi-line passage is written out as it is typed and grows the hero.
-  const isLine = !fullText.includes("\n");
   const [perColumn, setPerColumn] = React.useState(0);
   const rows = typedText.split("\n").flatMap((line) => withGloss(line, perColumn));
-  let offset = 0;
-  const lineChunks = fullText.split(/(?<=·) /).map((chunk, i) => {
-    const shown = Math.max(0, Math.min(chunk.length, typedText.length - offset));
-    offset += chunk.length + 1;
-    return <React.Fragment key={i}>{i > 0 && " "}<span className="hero-word">{chunk.slice(0, shown)}<span className="typed-rest">{chunk.slice(shown)}</span></span></React.Fragment>;
-  });
   const typedRef = React.useRef(null);
   const heroRef = React.useRef(null);
   const atNewest = React.useRef(true);
@@ -212,8 +216,9 @@ function Hero({ typedText, fullText, fading, held, onHold, slips }) {
         scroll.getBoundingClientRect();
       }
       const text = getComputedStyle(scroll.lastElementChild);
-      const letter = parseFloat(text.fontSize) + (parseFloat(text.letterSpacing) || 0);
-      const seconds = 1.05 * (scroll.clientWidth / letter) * (stepOf(fullText) / 1000);
+      // An English letter takes a little under half the width of a Chinese character.
+      const letter = lang === "zh" ? parseFloat(text.fontSize) + (parseFloat(text.letterSpacing) || 0) : parseFloat(text.fontSize) * 0.46;
+      const seconds = 1.05 * (scroll.clientWidth / letter) * ((lang === "zh" ? stepOf(fullText) : EN_STEP) / 1000);
       scroll.style.transition = `transform ${seconds.toFixed(2)}s linear`;
       scroll.style.transform = `translateY(${-rise}px)`;
       return;
@@ -252,7 +257,7 @@ function Hero({ typedText, fullText, fading, held, onHold, slips }) {
   };
   // People tap moving text as they would a video: one tap stops it to read, the next goes on. A tap that only closes the open menu does neither, and a finished passage has nothing to stop.
   const onTap = () => {
-    if (lang !== "zh" || typedText === fullText || document.querySelector(".shelf-name")) return;
+    if (typedText === fullText || document.querySelector(".shelf-name")) return;
     const scroll = typedRef.current.firstChild;
     if (!held.current) {
       onHold(true);
@@ -269,8 +274,19 @@ function Hero({ typedText, fullText, fading, held, onHold, slips }) {
     touched.current = 0;
     follow();
   };
+  // Another text always opens at its beginning, wherever the last one had got to. Two essays share this box and start with their title, so nothing else marks the change.
+  React.useLayoutEffect(() => {
+    const el = typedRef.current;
+    atNewest.current = true;
+    touched.current = 0;
+    followedWidth.current = 0;
+    el.firstChild.style.transition = "none";
+    el.firstChild.style.transform = "";
+    el.scrollTop = 0;
+    el.scrollLeft = 0;
+  }, [fullText]);
   React.useEffect(() => {
-    if (lang !== "zh" || !slips) return;
+    if (!slips) return;
     // WeChat enlarges the type by its reader's font setting, but sizes in em don't follow. So the seal images and both columns' steps are worked out from the type as it really is, which keeps them one to one and each column on one slip.
     const measureColumn = () => {
       const scroll = typedRef.current.firstChild;
@@ -307,7 +323,6 @@ function Hero({ typedText, fullText, fading, held, onHold, slips }) {
     };
   }, [lang, slips]);
   React.useEffect(() => {
-    if (lang !== "zh") return;
     const hero = heroRef.current;
     const el = typedRef.current;
     // Prose scrolls in its own box, downward. The reader's hand leaves the newest line; coming back near the end picks it up again.
@@ -346,37 +361,30 @@ function Hero({ typedText, fullText, fading, held, onHold, slips }) {
     return () => { hero.removeEventListener("wheel", onWheel); el.removeEventListener("touchmove", handOver); el.removeEventListener("scroll", onScroll); };
   }, [lang, slips]);
   React.useEffect(() => {
-    if (lang === "zh") {
-      const el = typedRef.current;
-      if (!slips) {
-        if (!typedText) {
-          atNewest.current = true;
-          followedWidth.current = 0;
-          el.firstChild.style.transition = "none";
-          el.firstChild.style.transform = "";
-          el.scrollTop = 0;
-        }
-        if (atNewest.current && el.firstChild.offsetHeight !== followedWidth.current && Date.now() - touched.current > 1500) follow();
-        return;
-      }
-      // New columns open at the left and push the old ones right, unless the reader has gone back to earlier columns.
-      alignSlips();
+    const el = typedRef.current;
+    if (!slips) {
       if (!typedText) {
         atNewest.current = true;
+        followedWidth.current = 0;
         el.firstChild.style.transition = "none";
         el.firstChild.style.transform = "";
-        followedWidth.current = 0;
+        el.scrollTop = 0;
       }
-      if (atNewest.current && el.scrollWidth !== followedWidth.current && Date.now() - touched.current > 1500) follow();
+      if (atNewest.current && el.firstChild.offsetHeight !== followedWidth.current && Date.now() - touched.current > 1500) follow();
       return;
     }
-    // Follow the typing downward, unless the reader has scrolled away from it.
-    const bottom = typedRef.current.getBoundingClientRect().bottom;
-    const target = innerHeight * 0.75;
-    if (bottom > target && bottom < innerHeight + 80) window.scrollBy({ top: bottom - target, behavior: "smooth" });
+    // New columns open at the left and push the old ones right, unless the reader has gone back to earlier columns.
+    alignSlips();
+    if (!typedText) {
+      atNewest.current = true;
+      el.firstChild.style.transition = "none";
+      el.firstChild.style.transform = "";
+      followedWidth.current = 0;
+    }
+    if (atNewest.current && el.scrollWidth !== followedWidth.current && Date.now() - touched.current > 1500) follow();
   }, [typedText]);
   return (
-    <section className={`hero ${lang === "zh" && !slips ? "is-prose" : ""}`} id="top" ref={heroRef} onClick={onTap}>
+    <section className={`hero ${slips ? "" : "is-prose"}`} id="top" ref={heroRef} onClick={onTap}>
       <div className="hero-map" aria-hidden="true">
         <i className="contour contour-a" />
         <i className="contour contour-b" />
@@ -384,17 +392,9 @@ function Hero({ typedText, fullText, fading, held, onHold, slips }) {
       </div>
       <div className="hero-copy">
         <h1 className="sr-only">{role}</h1>
-        <div className="hero-signature">
-          <p className="role">
-            {parts.map((part, i) => (
-              <React.Fragment key={i}>{i > 0 && " "}<span className="hero-word">{part}{i === parts.length - 1 && seal}</span></React.Fragment>
-            ))}
-          </p>
-          <span className="hero-divider" aria-hidden="true" />
-        </div>
         <div className={`typed ${fading ? "is-fading" : ""}`} ref={typedRef}>
           <div className="typed-scroll">
-            {isLine ? <p>{lineChunks}</p> : rows.map((row, i) => <Line key={i} text={row.text} n={i} gloss={row.gloss} still={!slips && !i} />)}
+            {rows.map((row, i) => <Line key={i} text={row.text} n={i} gloss={row.gloss} still={!slips && !i} />)}
           </div>
         </div>
       </div>

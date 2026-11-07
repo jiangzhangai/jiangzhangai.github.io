@@ -5,6 +5,43 @@
     { "char": "老", "zh": "《老子》", "en": "Laozi", "piece": "老", "glyphs": "seal_laozi.js?v=20261101-176" },
     { "char": "庄", "zh": "《庄子》", "en": "Zhuangzi", "piece": "庄" }
   ],
+  "canon": [
+    {
+      "char": "易", "zh": "易", "en": "Yi",
+      "children": [
+        { "zh": "《四易》", "en": "The Four Yi", "status": "soon" }
+      ]
+    },
+    {
+      "char": "子", "zh": "子", "en": "Masters",
+      "children": [
+        { "zh": "《老子》", "en": "Laozi", "piece": "老", "glyphs": "seal_laozi.js?v=20261101-176" },
+        { "zh": "《庄子》", "en": "Zhuangzi", "piece": "庄" },
+        { "zh": "《墨子》", "en": "Mozi", "status": "soon" },
+        { "zh": "《韩非子》", "en": "Han Feizi", "status": "soon" },
+        { "zh": "《孙子兵法》", "en": "The Art of War", "status": "soon" },
+        { "zh": "《公孙龙子》", "en": "Gongsun Longzi", "status": "soon" },
+        { "zh": "《鬼谷子》", "en": "Guiguzi", "status": "soon" },
+        { "zh": "《吕氏春秋》", "en": "Lüshi Chunqiu", "status": "soon" }
+      ]
+    },
+    {
+      "char": "史", "zh": "史", "en": "Histories",
+      "children": [
+        { "zh": "《竹书纪年》", "en": "Bamboo Annals", "status": "soon" },
+        { "zh": "《战国策》", "en": "Strategies of the Warring States", "status": "soon" },
+        { "zh": "《五藏山经》", "en": "Classic of the Five Treasuries", "status": "soon" }
+      ]
+    },
+    {
+      "char": "楚", "zh": "楚", "en": "Chu",
+      "children": [
+        { "zh": "《离骚》", "en": "Li Sao", "status": "soon" },
+        { "zh": "《天问》", "en": "Tian Wen", "status": "soon" },
+        { "zh": "《九歌》", "en": "Nine Songs", "status": "soon" }
+      ]
+    }
+  ],
   "commerce": [
     {
       "char": "AI", "zh": "商业应用", "en": "Applications",
