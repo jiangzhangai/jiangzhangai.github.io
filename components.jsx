@@ -196,7 +196,7 @@ function Notes({ onClose }) {
 }
 
 // On the Chinese side a chosen book runs on bamboo slips; the home page is modern prose, set across the page (prose below).
-function Hero({ typedText, fullText, fading, held, onHold, slips }) {
+function Hero({ typedText, fullText, fading, held, onHold, slips, whole, onWhole }) {
   const t = useT();
   const lang = React.useContext(LangContext);
   const role = t(PROFILE.roleEn, PROFILE.roleZh);
@@ -313,7 +313,7 @@ function Hero({ typedText, fullText, fading, held, onHold, slips }) {
   };
   // People tap moving text as they would a video: one tap stops it to read, the next goes on. A tap that only closes the open menu does neither, and a finished passage has nothing to stop.
   const onTap = () => {
-    if (typedText === fullText || document.querySelector(".shelf-name")) return;
+    if (whole || typedText === fullText || document.querySelector(".shelf-name")) return;
     const scroll = typedRef.current.firstChild;
     if (!held.current) {
       onHold(true);
@@ -329,6 +329,36 @@ function Hero({ typedText, fullText, fading, held, onHold, slips }) {
     atNewest.current = true;
     touched.current = 0;
     follow();
+  };
+  // Two taps within 0.3 s are a double tap: the whole text at once, or back to the typing. Browsers differ on double clicks, so the taps are timed here,
+  // and a single tap waits that long to be sure it is single (John 2026-11-18).
+  const lastTap = React.useRef(0);
+  const tapTimer = React.useRef(null);
+  const onDoubleTap = () => {
+    if (!whole) {
+      if (typedText === fullText) return;
+      handOver();
+      atNewest.current = false;
+      onWhole();
+      return;
+    }
+    onWhole();
+    // Back to the newest line or column; the typing goes on from there.
+    atNewest.current = true;
+    touched.current = 0;
+  };
+  const onPress = () => {
+    if (document.querySelector(".shelf-name")) return;
+    const now = Date.now();
+    if (now - lastTap.current < 300) {
+      clearTimeout(tapTimer.current);
+      lastTap.current = 0;
+      onDoubleTap();
+      return;
+    }
+    lastTap.current = now;
+    clearTimeout(tapTimer.current);
+    tapTimer.current = setTimeout(onTap, 300);
   };
   // Another text always opens at its beginning, wherever the last one had got to. Two essays share this box and start with their title, so nothing else marks the change.
   React.useLayoutEffect(() => {
@@ -440,7 +470,7 @@ function Hero({ typedText, fullText, fading, held, onHold, slips }) {
     if (atNewest.current && el.scrollWidth !== followedWidth.current && Date.now() - touched.current > 1500) follow();
   }, [typedText]);
   return (
-    <section className={`hero ${slips ? "" : "is-prose"}`} id="top" ref={heroRef} onClick={onTap}>
+    <section className={`hero ${slips ? "" : "is-prose"}`} id="top" ref={heroRef} onClick={onPress}>
       <div className="hero-map" aria-hidden="true">
         <i className="contour contour-a" />
         <i className="contour contour-b" />

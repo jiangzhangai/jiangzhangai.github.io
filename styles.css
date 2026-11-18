@@ -246,3 +246,6 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 .notes-buttons button { padding: .4em 1.2em; border: 1px solid var(--muted); border-radius: 4px; background: transparent; font: inherit; cursor: pointer; }
 .notes-buttons .notes-send { border-color: var(--accent); background: var(--accent); color: #fff; }
 .notes-buttons button:disabled { opacity: .5; cursor: default; }
+
+/* The reading area takes double taps for itself (whole text / back to typing): no double-tap zoom there; pinching still zooms. John 2026-11-18. */
+.hero { touch-action: manipulation; }

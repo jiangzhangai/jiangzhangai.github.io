@@ -20,13 +20,21 @@ function App() {
   // A tap holds the typing where it is; the next tap lets the waiting character go on.
   const held = React.useRef(false);
   const waiting = React.useRef(null);
+  // A double tap shows the whole text at once; another double tap goes back to where the typing had got to and goes on (John 2026-11-18).
+  const whole = React.useRef(false);
+  const [wholeOn, setWholeOn] = React.useState(false);
   const hold = (on) => {
     held.current = on;
-    if (!on && waiting.current) {
+    if (!on && !whole.current && waiting.current) {
       const go = waiting.current;
       waiting.current = null;
       go();
     }
+  };
+  const toggleWhole = () => {
+    whole.current = !whole.current;
+    setWholeOn(whole.current);
+    if (!whole.current) hold(false);
   };
 
   React.useEffect(() => {
@@ -86,7 +94,7 @@ function App() {
       }, 1200);
     };
     const tick = () => {
-      if (held.current) {
+      if (held.current || whole.current) {
         waiting.current = tick;
         return;
       }
@@ -101,6 +109,8 @@ function App() {
     // Clear first, so that a piece chosen midway starts on bare slips.
     held.current = false;
     waiting.current = null;
+    whole.current = false;
+    setWholeOn(false);
     setFading(false);
     setTypedText(current.slice(0, start));
     timer = setTimeout(tick, 300);
@@ -125,7 +135,7 @@ function App() {
       <Header dark={dark} onToggle={() => setDark((value) => !value)} onLang={() => setLang((value) => (value === "zh" ? "en" : "zh"))} />
       <Bookshelf onPiece={choosePiece} onSpine={onSpine} onNotes={() => setNoting(true)} />
       <main>
-        <Hero typedText={typedText} fullText={fullText} fading={fading} held={held} onHold={hold} slips={slips} />
+        <Hero typedText={wholeOn ? fullText : typedText} fullText={fullText} fading={fading} held={held} onHold={hold} slips={slips} whole={wholeOn} onWhole={toggleWhole} />
       </main>
       {noting && <Notes onClose={() => setNoting(false)} />}
     </LangContext.Provider>
