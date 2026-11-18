@@ -193,7 +193,7 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 @font-face { font-family: "Prose Punct"; src: url("assets/punct-sc.woff2") format("woff2"); font-weight: 400; font-display: swap; unicode-range: U+FF0C,U+3002,U+3001,U+FF1B,U+FF1A,U+FF1F,U+FF01,U+201C,U+201D,U+2018,U+2019,U+FF08,U+FF09,U+300A,U+300B; }
 /* The home page is modern prose: across the page on the plain ground, in its own scrolling box, with no slips. The books above keep theirs. */
 :root .hero.is-prose .hero-copy { display: block; padding: 0; }
-:root .hero.is-prose .typed { position: absolute; inset: 0; width: auto; margin: 0; padding: clamp(40px, 9svh, 88px) clamp(18px, 6vw, 72px) 22svh; overflow: hidden auto; clip-path: none; writing-mode: horizontal-tb; color: var(--ink); font-family: "Prose Punct", "Noto Serif TC", "Noto Serif SC", serif; font-size: calc(clamp(14px, 1.15vw, 17px) * var(--ring-scale, 1)); line-height: 1.9; }
+:root .hero.is-prose .typed { position: absolute; inset: 0; width: auto; margin: 0; padding: clamp(40px, 9svh, 88px) clamp(18px, 6vw, 72px) 22svh; overflow: hidden auto; clip-path: none; writing-mode: horizontal-tb; color: var(--ink); font-family: "Prose Punct", "Noto Serif TC", "Noto Serif SC", serif; font-size: calc((clamp(14px, 1.15vw, 17px) - 2px) * var(--ring-scale, 1)); line-height: 1.9; }
 :root .hero.is-prose .typed-scroll { min-width: 0; max-width: 42em; margin-inline: auto; padding: 0; background: none; }
 /* The type is drawn back by the same scale as the rings (app.jsx), so a reader's large WeChat setting does not double it. */
 /* A computer has room for twice the measure; a phone keeps its own. */
@@ -204,7 +204,7 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 :root .hero.is-prose .typed-scroll::after { display: none; }
 :root .hero.is-prose .typed-scroll p { font-size: 1em; line-height: 1.9; font-weight: 400; color: var(--ink); }
 :root .hero.is-prose .typed-passage { margin-top: .9em !important; }
-:root .hero.is-prose .typed-scroll p.typed-heading { margin: 0 0 1.6em !important; font-size: 1.4em; line-height: 1.5; font-weight: 600; text-align: center; text-align-last: center; }
+:root .hero.is-prose .typed-scroll p.typed-heading { margin: 0 0 1.6em !important; font-size: calc(1.4em + .8px); line-height: 1.5; font-weight: 600; text-align: center; text-align-last: center; }
 :root .hero.is-prose .typed-scroll p.typed-source { margin-top: 2em !important; font-size: .85em; letter-spacing: 0; text-align: right; text-align-last: right; text-wrap: balance; color: var(--text-soft); }
 /* A credit under the title stands with it, and each chapter's title sets its chapter off from the last. */
 :root .hero.is-prose .typed-scroll p.typed-heading + p.typed-source { margin: -.4em 0 3.2em !important; text-align: center; text-align-last: center; }
@@ -212,7 +212,7 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 /* English prose sits to the right of the spine and reads best set flush left. */
 .hero.is-prose { height: 100svh; min-height: 0; display: block; padding: 0; text-align: left; touch-action: manipulation; }
 :root[lang="en"] .hero.is-prose .hero-copy { position: absolute; inset: 0 0 0 var(--strip); width: auto; }
-:root[lang="en"] .hero.is-prose .typed { font-family: "Source Serif 4", Georgia, serif; font-size: calc(clamp(15px, 1.2vw, 18px) * var(--ring-scale, 1)); line-height: 1.75; letter-spacing: 0; text-shadow: none; text-align: left; }
+:root[lang="en"] .hero.is-prose .typed { font-family: "Source Serif 4", Georgia, serif; font-size: calc((clamp(15px, 1.2vw, 18px) - 2px) * var(--ring-scale, 1)); line-height: 1.75; letter-spacing: 0; text-shadow: none; text-align: left; }
 :root[lang="en"] .hero.is-prose .typed-scroll p { line-height: 1.75; }
 /* Latin letters are narrow: a line much longer than this is hard to follow. */
 :root[lang="en"] .hero.is-prose .typed-scroll { max-width: 46em; }
@@ -229,13 +229,13 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 
 /* Notes: the ring at the foot of the spine opens a form over the page. Same paper, ink and accent as the rest. */
 .notes-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; background: color-mix(in srgb, var(--paper) 70%, transparent); backdrop-filter: blur(6px); }
-.notes { width: min(480px, 100%); display: grid; gap: 10px; padding: 20px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); font: 400 14px/1.6 var(--serif); box-shadow: 0 10px 40px rgba(0, 0, 0, .25); }
+.notes { width: min(480px, 100%); display: grid; gap: 10px; padding: 20px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); font: 400 7px/1.6 var(--serif); box-shadow: 0 10px 40px rgba(0, 0, 0, .25); }
 .notes p { margin: 0; }
 /* John, 2026-11-07: the title stays as it was; all else one size smaller. */
-.notes-title { font-weight: 600; font-size: 16.5px; }
+.notes-title { font-weight: 600; font-size: 8.25px; }   /* 留言框字号减半（John 2026-11-18） */
 .notes-hint, .notes-said { color: var(--text-soft); font-size: .9em; }
 .notes-said { color: var(--accent); }
-.notes :is(textarea, input) { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper-deep); color: var(--ink); font: inherit; font-size: 15px; resize: vertical; }
+.notes :is(textarea, input) { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper-deep); color: var(--ink); font: inherit; font-size: 7.5px; resize: vertical; }
 /* iPhone Safari zooms the page into any field under 16px when it is tapped, so there it stays at 16px. */
 @supports (-webkit-touch-callout: none) { .notes :is(textarea, input) { font-size: 16px; } }
 /* John, 2026-11-07: the reader's box takes no colour, also when focused or when text in it is selected. */

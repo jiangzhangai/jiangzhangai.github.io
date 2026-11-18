@@ -160,6 +160,12 @@ function Notes({ onClose }) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
+  // After “Received”, the note closes by itself three seconds later (John 2026-11-18).
+  React.useEffect(() => {
+    if (status !== "sent") return undefined;
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [status]);
   const send = (event) => {
     event.preventDefault();
     if (!message.trim()) return;
@@ -173,7 +179,7 @@ function Notes({ onClose }) {
     }).then((response) => setStatus(response.ok ? "sent" : "failed")).catch(() => setStatus("failed"));
   };
   const said = {
-    sent: t("Received. Thank you.", "已收到，谢谢。"),
+    sent: t("Received. Thank you!", "已收到，谢谢！"),
     failed: t("It didn't go through. Please try again later.", "没有发出去，请稍后再试。"),
     preview: t("Preview: not connected yet, so nothing was sent.", "预览：尚未接通，留言没有发出。"),
   }[status];
@@ -181,9 +187,8 @@ function Notes({ onClose }) {
     <div className="notes-backdrop" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <form className="notes" onSubmit={send} aria-label={t("Leave a note", "留言")}>
         <p className="notes-title">{t("Leave a note", "留言")}</p>
-        <p className="notes-hint">{t("Only the author will read it.", "留言只有作者看得到。")}</p>
         <textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={3000} rows={6} required autoFocus
-          placeholder={t("Write what you think.", "写下你的想法。")} disabled={status === "sending" || status === "sent"} />
+          placeholder={t("Your comments and corrections are welcome", "欢迎您批评指正")} disabled={status === "sending" || status === "sent"} />
         <input ref={trap} className="notes-trap" tabIndex={-1} autoComplete="off" aria-hidden="true" />
         {said && <p className="notes-said">{said}</p>}
         <div className="notes-buttons">
