@@ -3,8 +3,13 @@ const PROFILE = {
   roleZh: "中华先秦哲学思想研究",
 };
 
-// Off while John reviews and copies text; turn on again at publication.
-const BLOCK_COPY = true;
+// The published address, as against the preview on this machine.
+const PUBLISHED = /(^|\.)jiangzhang\.ca$|\.github\.io$/.test(location.hostname);
+// On only when published; the preview stays copyable for John's editing, with nothing to switch at publication.
+const BLOCK_COPY = PUBLISHED;
+// Visitors' notes go privately to John by email, through Formspree (its form address, made on John's account). Nothing is shown on the page.
+// Set 2026-11-07. Emptied, the published site leaves the notes link out and the preview shows it but sends nothing.
+const NOTES_URL = "https://formspree.io/f/myeeadpz";
 
 // The home page playlist ships encoded (playlist.js), so the passages are not plain text in the source.
 // Edit work/playlist/playlist_zh.json and run encode_playlist.py; the key must match it.

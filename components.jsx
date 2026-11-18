@@ -26,7 +26,7 @@ function Header({ dark, onToggle, onLang }) {
 }
 
 // The spine is a bookshelf: one cell per project, read from projects.json.
-function Bookshelf({ onPiece, onSpine }) {
+function Bookshelf({ onPiece, onSpine, onNotes }) {
   const t = useT();
   const [shelf, setShelf] = React.useState(null);
   const [open, setOpen] = React.useState(null);
@@ -77,13 +77,15 @@ function Bookshelf({ onPiece, onSpine }) {
 
   // A name stands in the spine, running down under its cell: a book's full name, or AI's product. The cell closes it again.
   // A piece's name stays open when clicked, and the piece plays on the slips.
+  // In English a ring shows its letter (charEn); one letter is set like the language ring's E, two (AI) smaller.
+  const ringChar = (item) => (lang === "zh" ? item.char : item.charEn || item.char);
   const cell = (item) => (
     <li key={item.char}>
-      <button className={`shelf-cell ${item.char.length > 1 ? "is-latin" : ""} ${open === item ? "is-open" : ""}`}
+      <button className={`shelf-cell ${ringChar(item).length > 1 ? "is-latin" : /^[A-Z]$/.test(ringChar(item)) ? "is-letter" : ""} ${open === item ? "is-open" : ""}`}
         aria-label={t(item.en, item.zh)}
         aria-expanded={open === item}
         onClick={() => { setPlaying(null); setOpen(open === item ? null : item); }}>
-        <span className="ring-char">{item.char}</span>
+        <span className="ring-char">{ringChar(item)}</span>
       </button>
       {open === item && (lang === "zh" || playing !== item) && <div className="shelf-name" onClick={item.piece ? () => play(item, item.piece, item.glyphs) : closeUnlessLink}>{(item.children || [item]).filter((child) => lang === "zh" || !child.piece || PIECES_EN[child.piece]).map((child) => entry(child, item))}</div>}
     </li>
@@ -94,6 +96,12 @@ function Bookshelf({ onPiece, onSpine }) {
       <ul>{shelf.thought.map(cell)}</ul>
       <ul className="shelf-canon">{shelf.canon.map(cell)}</ul>
       <ul className="shelf-commerce">{shelf.commerce.map(cell)}</ul>
+      {/* A note to the author: its ring opens the form at once. Left out at the published address while the form has no address. */}
+      {(NOTES_URL || !PUBLISHED) && <ul className="shelf-commerce shelf-notes"><li>
+        <button className={`shelf-cell ${lang === "zh" ? "" : "is-letter"}`} aria-label={t("Leave a note", "留言")} onClick={() => { setOpen(null); onNotes(); }}>
+          <span className="ring-char">{t("N", "留")}</span>
+        </button>
+      </li></ul>}
       <span className="shelf-seal" role="img" aria-label={t("Family seal", "家族印章")} />
     </nav>
   );
@@ -138,6 +146,54 @@ const withGloss = (line, size) => {
   }
   return rows;
 };
+
+// A reader's note to the author, sent privately (NOTES_URL in data.jsx). Not a comment area: nothing is shown, kept or answered on the page.
+function Notes({ onClose }) {
+  const t = useT();
+  const lang = React.useContext(LangContext);
+  const [message, setMessage] = React.useState("");
+  const [status, setStatus] = React.useState("writing");
+  // Left empty by people; filled only by robots that fill every field.
+  const trap = React.useRef(null);
+  React.useEffect(() => {
+    const onKey = (event) => { if (event.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+  const send = (event) => {
+    event.preventDefault();
+    if (!message.trim()) return;
+    if (!NOTES_URL) { setStatus("preview"); return; }
+    setStatus("sending");
+    fetch(NOTES_URL, {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      // _subject, Formspree's own field, heads the email John receives.
+      body: JSON.stringify({ _subject: t("Site note", "网站留言"), lang, message: message.trim(), _gotcha: trap.current.value }),
+    }).then((response) => setStatus(response.ok ? "sent" : "failed")).catch(() => setStatus("failed"));
+  };
+  const said = {
+    sent: t("Received. Thank you.", "已收到，谢谢。"),
+    failed: t("It didn't go through. Please try again later.", "没有发出去，请稍后再试。"),
+    preview: t("Preview: not connected yet, so nothing was sent.", "预览：尚未接通，留言没有发出。"),
+  }[status];
+  return (
+    <div className="notes-backdrop" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <form className="notes" onSubmit={send} aria-label={t("Leave a note", "留言")}>
+        <p className="notes-title">{t("Leave a note", "留言")}</p>
+        <p className="notes-hint">{t("Only the author will read it.", "留言只有作者看得到。")}</p>
+        <textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={3000} rows={6} required autoFocus
+          placeholder={t("Write what you think.", "写下你的想法。")} disabled={status === "sending" || status === "sent"} />
+        <input ref={trap} className="notes-trap" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+        {said && <p className="notes-said">{said}</p>}
+        <div className="notes-buttons">
+          <button type="button" onClick={onClose}>{status === "sent" ? t("Close", "关闭") : t("Cancel", "取消")}</button>
+          {status !== "sent" && <button type="submit" className="notes-send" disabled={status === "sending" || !message.trim()}>{status === "sending" ? t("Sending…", "发送中…") : t("Send", "发送")}</button>}
+        </div>
+      </form>
+    </div>
+  );
+}
 
 // On the Chinese side a chosen book runs on bamboo slips; the home page is modern prose, set across the page (prose below).
 function Hero({ typedText, fullText, fading, held, onHold, slips }) {

@@ -36,6 +36,7 @@ html { scroll-behavior: smooth; background: var(--paper); -webkit-text-size-adju
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); font-weight: 300; }
 /* Under BLOCK_COPY (data.jsx) text can't be selected or long-pressed to copy (app.jsx also blocks copy and the context menu). */
 :root.no-copy body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+:root.no-copy :is(input, textarea) { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 a { color: inherit; text-decoration: none; }
 button { color: inherit; }
 ::selection { background: var(--accent); color: #fff; }
@@ -79,6 +80,7 @@ button { color: inherit; }
 .shelf-cell:hover { color: var(--accent); background: transparent; border-color: var(--accent); box-shadow: 0 0 0 1px var(--paper-deep), 0 0 0 2px var(--accent); transform: scale(1.05); }
 /* Two letters take a smaller size to fit the same circle. */
 .shelf-cell.is-latin { font: 600 8px/1 "Source Serif 4", serif; }
+.shelf-cell.is-letter { font: 600 10px/1 "Source Serif 4", serif; }
 /* A name runs down the spine from its cell's own place; the cells below move down to make room. */
 /* Same type as the circles. The box takes its width from the text, so it stays centred when a phone scales text up; the bottom padding allows for the last letter's spacing. */
 .shelf-name { --pad: 4px; position: relative; left: 50%; transform: translateX(-50%); width: max-content; min-width: 17px; padding: var(--pad) 0 calc(var(--pad) - .15em); border-radius: 3px; background: var(--paper); writing-mode: vertical-rl; font: 600 9px/17px "Noto Serif SC", serif; letter-spacing: .15em; cursor: pointer; scroll-margin-bottom: 14px; }
@@ -126,6 +128,7 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
   .shelf-cell { width: 24px; height: 24px; font-size: 13px; }
   .shelf-cell { width: 14px; height: 14px; font-size: 7.5px; }
   .shelf-cell.is-latin { font-size: 6.5px; }
+  .shelf-cell.is-letter { font-size: 8.5px; }
   .bookshelf .shelf-canon, .bookshelf .shelf-commerce { margin-top: 12px; padding-top: 12px; }
   .shelf-name { --pad: 3.25px; min-width: 14px; font-size: 7.5px; line-height: 14px; }
   .bookshelf ul { gap: 4px; }
@@ -223,3 +226,23 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Notes: the ring at the foot of the spine opens a form over the page. Same paper, ink and accent as the rest. */
+.notes-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; background: color-mix(in srgb, var(--paper) 70%, transparent); backdrop-filter: blur(6px); }
+.notes { width: min(480px, 100%); display: grid; gap: 10px; padding: 20px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); font: 400 14px/1.6 var(--serif); box-shadow: 0 10px 40px rgba(0, 0, 0, .25); }
+.notes p { margin: 0; }
+/* John, 2026-11-07: the title stays as it was; all else one size smaller. */
+.notes-title { font-weight: 600; font-size: 16.5px; }
+.notes-hint, .notes-said { color: var(--text-soft); font-size: .9em; }
+.notes-said { color: var(--accent); }
+.notes :is(textarea, input) { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper-deep); color: var(--ink); font: inherit; font-size: 15px; resize: vertical; }
+/* iPhone Safari zooms the page into any field under 16px when it is tapped, so there it stays at 16px. */
+@supports (-webkit-touch-callout: none) { .notes :is(textarea, input) { font-size: 16px; } }
+/* John, 2026-11-07: the reader's box takes no colour, also when focused or when text in it is selected. */
+.notes :is(textarea, input):focus { outline: 1px solid var(--muted); border-color: var(--muted); }
+.notes :is(textarea, input)::selection { background: var(--muted); color: var(--paper); }
+.notes .notes-trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.notes-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+.notes-buttons button { padding: .4em 1.2em; border: 1px solid var(--muted); border-radius: 4px; background: transparent; font: inherit; cursor: pointer; }
+.notes-buttons .notes-send { border-color: var(--accent); background: var(--accent); color: #fff; }
+.notes-buttons button:disabled { opacity: .5; cursor: default; }

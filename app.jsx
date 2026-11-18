@@ -16,6 +16,7 @@ function App() {
   const [play, setPlay] = React.useState(0);
   const [fading, setFading] = React.useState(false);
   const [piece, setPiece] = React.useState(null);
+  const [noting, setNoting] = React.useState(false);
   // A tap holds the typing where it is; the next tap lets the waiting character go on.
   const held = React.useRef(false);
   const waiting = React.useRef(null);
@@ -37,7 +38,8 @@ function App() {
     // Deters copying; a screenshot still works.
     if (!BLOCK_COPY) return undefined;
     document.documentElement.classList.add("no-copy");
-    const block = (event) => event.preventDefault();
+    // The notes form is the reader's own writing: there they may select, paste and long-press as usual.
+    const block = (event) => { if (!event.target.closest?.("input, textarea")) event.preventDefault(); };
     const events = ["copy", "cut", "contextmenu", "selectstart", "dragstart"];
     events.forEach((name) => document.addEventListener(name, block));
     return () => events.forEach((name) => document.removeEventListener(name, block));
@@ -121,10 +123,11 @@ function App() {
   return (
     <LangContext.Provider value={lang}>
       <Header dark={dark} onToggle={() => setDark((value) => !value)} onLang={() => setLang((value) => (value === "zh" ? "en" : "zh"))} />
-      <Bookshelf onPiece={choosePiece} onSpine={onSpine} />
+      <Bookshelf onPiece={choosePiece} onSpine={onSpine} onNotes={() => setNoting(true)} />
       <main>
         <Hero typedText={typedText} fullText={fullText} fading={fading} held={held} onHold={hold} slips={slips} />
       </main>
+      {noting && <Notes onClose={() => setNoting(false)} />}
     </LangContext.Provider>
   );
 }
