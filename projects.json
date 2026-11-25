@@ -1,5 +1,13 @@
 {
   "_note": "书架的唯一项目清单。新增、改名、换网址、上线只改这里。单字讲书：url 为站内书页，本标签页打开；AI 放全部产品：url 为产品站，新标签打开。status: live 可进入；soon 尚未上线，只显示名称。piece：点开名称后再点，在竹简上播放 playlist_zh.json 中 pieces 的同名篇目。charEn：英文页面圆圈里的字母（2026-11-07 John 定），缺省时仍显示 char。书页路径与英文名为 CC 初拟，待 John 审定。",
+  "column": [
+    {
+      "char": "问道", "charEn": "Q", "zh": "问道 · 《老子》初始本决策问答", "en": "Asking the Way",
+      "children": [
+        { "zh": "问道一：什么是道？", "en": "Asking the Way 1: What Is the Dao?", "piece": "问1" }
+      ]
+    }
+  ],
   "thought": [
     { "char": "伏", "charEn": "F", "zh": "伏羲之道", "en": "The Way of Fuxi", "url": "/fu/", "status": "soon" },
     { "char": "老", "charEn": "L", "zh": "《老子》", "en": "Laozi", "piece": "老", "glyphs": "seal_laozi.js?v=20261101-176" },

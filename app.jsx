@@ -61,7 +61,8 @@ function App() {
 
   // A book runs vertically, where curly quotes come out differently from browser to browser: use the vertical forms, which hold in all of them.
   // The study of the classics is modern prose, set like the home page and not on the slips.
-  const slips = lang === "zh" && Boolean(piece) && piece !== "考";
+  // The column 问道 is modern prose too (John 2026-11-25).
+  const slips = lang === "zh" && Boolean(piece) && piece !== "考" && !piece.startsWith("问");
   const fullText = lang === "zh" ? (piece ? (slips ? PIECES_ZH[piece].join("\n").replace(/“/g, "﹃").replace(/”/g, "﹄") : PIECES_ZH[piece].join("\n")) : PLAYLIST_ZH[play % PLAYLIST_ZH.length].join("\n")) : (PIECES_EN[piece] || PLAYLIST_EN[play % PLAYLIST_EN.length]).join("\n");
 
   React.useEffect(() => {

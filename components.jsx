@@ -81,7 +81,7 @@ function Bookshelf({ onPiece, onSpine, onNotes }) {
   const ringChar = (item) => (lang === "zh" ? item.char : item.charEn || item.char);
   const cell = (item) => (
     <li key={item.char}>
-      <button className={`shelf-cell ${ringChar(item).length > 1 ? "is-latin" : /^[A-Z]$/.test(ringChar(item)) ? "is-letter" : ""} ${open === item ? "is-open" : ""}`}
+      <button className={`shelf-cell ${ringChar(item).length > 1 ? (/^[一-鿿]+$/.test(ringChar(item)) ? "is-two" : "is-latin") : /^[A-Z]$/.test(ringChar(item)) ? "is-letter" : ""} ${open === item ? "is-open" : ""}`}
         aria-label={t(item.en, item.zh)}
         aria-expanded={open === item}
         onClick={() => { setPlaying(null); setOpen(open === item ? null : item); }}>
@@ -93,6 +93,8 @@ function Bookshelf({ onPiece, onSpine, onNotes }) {
 
   return (
     <nav className="bookshelf" ref={ref} aria-label={t("Projects", "项目书架")} onClick={tapSpine}>
+      {/* The column 问道 heads the spine, a rule beneath it (John 2026-11-25). */}
+      {shelf.column && <ul className="shelf-column">{shelf.column.map(cell)}</ul>}
       <ul>{shelf.thought.map(cell)}</ul>
       <ul className="shelf-canon">{shelf.canon.map(cell)}</ul>
       <ul className="shelf-commerce">{shelf.commerce.map(cell)}</ul>
@@ -113,9 +115,15 @@ const sealChar = (char, i) => (SEAL_GLYPHS[char]
   : char);
 const withSeal = (text) => text.split(/[]/).map((part, i) => (i % 2 ? <span className="seal" key={i}>{[...part].map(sealChar)}</span> : part));
 //  at the start of a line makes it a heading. An empty line is one blank slip.
+// The column 问道 (John 2026-11-25):  marks a section heading and  a heading within a section, both set at the left and
+// smaller than the title; in the title, what follows its dash is the subtitle, at half the size.
+const withSub = (text) => {
+  const at = text.indexOf("——") >= 0 ? text.indexOf("——") : text.indexOf(" — ");
+  return at < 0 ? withSeal(text) : [...withSeal(text.slice(0, at)), <span className="typed-sub" key="sub">{text.slice(at)}</span>];
+};
 const paragraph = (text, key, gloss) => (
-  <p className={`${gloss ? "typed-gloss " : ""}${key ? "typed-passage " : ""}${text[0] === "" ? "typed-heading" : ""} ${text[0] === "" ? "typed-source" : ""}`} key={key}>
-    {text ? withSeal(text.replace(/^[\ue002\ue003]/, "")) : "　"}
+  <p className={`${gloss ? "typed-gloss " : ""}${key ? "typed-passage " : ""}${text[0] === "" ? "typed-heading" : ""}${text[0] === "" ? "typed-subhead" : ""}${text[0] === "" ? "typed-subhead2" : ""} ${text[0] === "" ? "typed-source" : ""}`} key={key}>
+    {text ? (text[0] === "" ? withSub(text.slice(1)) : withSeal(text.replace(/^[\ue002\ue003\ue004\ue005]/, ""))) : "　"}
   </p>
 );
 

@@ -198,7 +198,7 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 /* The type is drawn back by the same scale as the rings (app.jsx), so a reader's large WeChat setting does not double it. */
 /* A computer has room for twice the measure; a phone keeps its own. */
 @media (min-width: 621px) {
-  :root .hero.is-prose .typed { padding-inline: clamp(18px, 3vw, 72px); }
+  :root .hero.is-prose .typed { padding-inline: clamp(36px, 6vw, 144px); }   /* side margins doubled, all prose (John 2026-11-25) */
   :root .hero.is-prose .typed-scroll { max-width: 84em; }
 }
 :root .hero.is-prose .typed-scroll::after { display: none; }
@@ -249,3 +249,17 @@ main::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: 1; w
 
 /* The reading area takes double taps for itself (whole text / back to typing): no double-tap zoom there; pinching still zooms. John 2026-11-18. */
 .hero { touch-action: manipulation; }
+
+/* The column 问道 heads the spine in a group of its own, a rule beneath it (John 2026-11-25). Its ring holds two characters. */
+.bookshelf .shelf-column + ul { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); margin-inline: 22%; }
+/* Its two characters stand one above the other, at the single rings' size: the ring grows into an upright capsule along the spine. */
+.shelf-cell.is-two { height: auto; padding: 3px 0; border-radius: 999px; }
+.shelf-cell.is-two .ring-char { writing-mode: vertical-rl; text-orientation: upright; line-height: 1; letter-spacing: 1px; }
+.shelf-column .shelf-name { display: flex; gap: 7px; }
+:root[lang="en"] .shelf-column .shelf-name { flex-direction: column; gap: 3px; }
+
+/* The column 问道 (John 2026-11-25): the subtitle follows the title after its dash at half size; section headings (一、二…)
+   and the headings within a section (1. 2. …) stand at the left, below the title's rank. */
+.typed-heading .typed-sub { display: inline-block; font-size: .5em; font-weight: 500; white-space: nowrap; }   /* kept whole: on a narrow screen it goes to the next line as one */
+:root .hero.is-prose .typed-scroll p.typed-subhead { margin: 2.2em 0 .7em !important; font-size: 1.12em; line-height: 1.6; font-weight: 600; text-align: left; text-align-last: left; }
+:root .hero.is-prose .typed-scroll p.typed-subhead2 { margin: 1.6em 0 .5em !important; font-size: 1em; line-height: 1.6; font-weight: 600; text-align: left; text-align-last: left; }
